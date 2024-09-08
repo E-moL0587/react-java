@@ -5,7 +5,7 @@ const App: React.FC = () => {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:8080/api/hello')
+    axios.get('http://localhost:8080/')
       .then(response => setMessage(response.data))
       .catch(error => console.error('Error fetching message:', error));
   }, []);
