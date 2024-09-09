@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import GLBViewer from './GLBViewer';
 
 const App: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -12,6 +13,7 @@ const App: React.FC = () => {
 
   return (
     <>
+      <GLBViewer />
       <h1>{message || 'Loading...'}</h1>
     </>
   );
