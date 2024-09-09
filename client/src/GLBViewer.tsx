@@ -59,12 +59,39 @@ const GLBViewer: React.FC = () => {
     }
   };
 
+  const sendModelToServer = () => {
+    if (sceneRef.current) {
+      GLTF2Export.GLBAsync(sceneRef.current, 'model.glb').then((glb) => {
+        const modelBlob = Object.values(glb.glTFFiles).find(
+          (file) => file instanceof Blob
+        ) as Blob;
+
+        if (modelBlob) {
+          const formData = new FormData();
+          formData.append('file', modelBlob, 'model.glb');
+
+          axios
+            .post('http://localhost:8080/upload', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            })
+            .then(() => alert('Model uploaded successfully!'))
+            .catch((error) => console.error('Error uploading model:', error));
+        } else {
+          console.error('No valid Blob found in the exported GLTF files.');
+        }
+      });
+    }
+  };
+
   return (
     <>
       <h1>{message || 'Loading...'}</h1>
       <canvas ref={canvasRef} style={{ width: '400px', height: '400px' }} />
       <br />
       <button onClick={exportGLB}>Export Model</button>
+      <button onClick={sendModelToServer}>Send to Server</button>
     </>
   );
 };
