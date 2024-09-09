@@ -1,11 +1,19 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, SceneLoader, Color4 } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
 const GLBViewer: React.FC = () => {
+  const [message, setMessage] = useState('');
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<Scene | null>(null);
+
+  useEffect(() => {
+    axios.get('http://localhost:8080/')
+      .then(response => setMessage(response.data))
+      .catch(error => console.error('Error fetching message:', error));
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -53,7 +61,9 @@ const GLBViewer: React.FC = () => {
 
   return (
     <>
+      <h1>{message || 'Loading...'}</h1>
       <canvas ref={canvasRef} style={{ width: '400px', height: '400px' }} />
+      <br />
       <button onClick={exportGLB}>Export Model</button>
     </>
   );
