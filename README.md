@@ -8,6 +8,14 @@ npm install axios
 https://start.spring.io
 Maven/Java/3.3.3/com.example.server/Jar/17
 
+## local
+\react-java\client>
+npm start
+
+\react-java\server>
+mvn clean package -DskipTests
+java -jar target/server-0.0.1-SNAPSHOT.jar
+
 ## docker
 docker build -t react-java .
 docker run -p 8080:8080 react-java
