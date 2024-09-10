@@ -5,13 +5,12 @@ import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
 const GLBViewer: React.FC = () => {
-  const [message, setMessage] = useState(''); // サーバーからのメッセージを表示
-  const [serverData, setServerData] = useState<any>(null); // サーバーからのデータを管理するためのstate
+  const [message, setMessage] = useState('');
+  const [serverData, setServerData] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<Scene | null>(null);
 
   useEffect(() => {
-    // サーバーから初期メッセージを取得
     axios.get('http://localhost:8080/')
       .then(response => setMessage(response.data))
       .catch(error => console.error('Error fetching message:', error));
@@ -35,7 +34,6 @@ const GLBViewer: React.FC = () => {
     const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene);
     light.intensity = 10;
 
-    // GLBファイルをシーンに読み込む
     SceneLoader.Append(
       '',
       'guitar.glb',
@@ -62,17 +60,15 @@ const GLBViewer: React.FC = () => {
     }
   };
 
-  // モデルをサーバーに送信し、サーバーからデータを受け取る
   const sendModelToServer = () => {
     if (sceneRef.current) {
       GLTF2Export.GLBAsync(sceneRef.current, 'model.glb').then((glb) => {
-        const modelBlob = Object.values(glb.glTFFiles).find(
-          (file) => file instanceof Blob
-        ) as Blob;
+        const modelBlob = new Blob(Object.values(glb.glTFFiles), { type: 'model/gltf-binary' });
 
         if (modelBlob) {
           const formData = new FormData();
           formData.append('file', modelBlob, 'model.glb');
+          formData.append('voxelSize', '0.06');
 
           axios
             .post('http://localhost:8080/upload', formData, {
@@ -82,7 +78,7 @@ const GLBViewer: React.FC = () => {
             })
             .then(response => {
               alert('Model uploaded successfully!');
-              setServerData(response.data); // サーバーからのデータをセット
+              setServerData(response.data);
             })
             .catch((error) => console.error('Error uploading model:', error));
         } else {
@@ -106,7 +102,7 @@ const GLBViewer: React.FC = () => {
           <ul>
             {serverData.map((point: { x: number; y: number; z: number }, index: number) => (
               <li key={index}>
-                X: {point.x.toFixed(5)}, Y: {point.y.toFixed(5)}, Z: {point.z.toFixed(5)}
+                X: {point.x}, Y: {point.y}, Z: {point.z}
               </li>
             ))}
           </ul>

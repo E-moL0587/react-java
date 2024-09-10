@@ -2,6 +2,7 @@ package com.example.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import de.javagl.jgltf.model.AccessorData;
 import de.javagl.jgltf.model.GltfModel;
+import de.javagl.jgltf.model.NodeModel;
 import de.javagl.jgltf.model.io.GltfModelReader;
+import de.javagl.jgltf.model.v2.GltfModelV2;
 
 @RestController
 public class VoxelController {
@@ -29,7 +33,7 @@ public class VoxelController {
     }
 
     @PostMapping("/upload")
-    public List<Map<String, Float>> uploadFile(@RequestParam MultipartFile file) {
+    public List<Map<String, Float>> uploadFile(@RequestParam MultipartFile file, @RequestParam float voxelSize) {
         List<Map<String, Float>> voxelCenters = new ArrayList<>();
 
         try {
@@ -40,8 +44,8 @@ public class VoxelController {
             // GLBファイルを読み込み
             GltfModel model = new GltfModelReader().read(tempFile.toURI());
 
-            // ボクセル化処理（例: 1単位グリッドに分割してボクセルの中心を計算）
-            voxelCenters = voxelizeModel(model, 1.0f); // 1.0fはボクセルサイズを表します。
+            // ボクセル化処理
+            voxelCenters = voxelizeModel(model, voxelSize);
 
         } catch (IOException e) {
             logger.error("IOException occurred while uploading file: " + e.getMessage());
@@ -52,12 +56,6 @@ public class VoxelController {
         return voxelCenters;
     }
 
-    /**
-     * 3Dモデルをボクセル化し、各ボクセルの中心の座標を取得します。
-     * @param model 読み込んだ3Dモデル
-     * @param voxelSize ボクセルサイズ
-     * @return ボクセルの中心座標リスト
-     */
     private List<Map<String, Float>> voxelizeModel(GltfModel model, float voxelSize) {
         List<Map<String, Float>> voxelCenters = new ArrayList<>();
 
@@ -67,9 +65,9 @@ public class VoxelController {
         // ボクセル化
         Map<String, Boolean> voxelMap = new HashMap<>();
         for (float[] vertex : vertices) {
-            int vx = (int) (Math.floor(vertex[0] / voxelSize));
-            int vy = (int) (Math.floor(vertex[1] / voxelSize));
-            int vz = (int) (Math.floor(vertex[2] / voxelSize));
+            int vx = (int) Math.floor(vertex[0] / voxelSize);
+            int vy = (int) Math.floor(vertex[1] / voxelSize);
+            int vz = (int) Math.floor(vertex[2] / voxelSize);
 
             String voxelKey = vx + "_" + vy + "_" + vz;
             if (!voxelMap.containsKey(voxelKey)) {
@@ -93,22 +91,34 @@ public class VoxelController {
         return voxelCenters;
     }
 
-    /**
-     * 3Dモデルの頂点データを取得します（ここでは仮のロジックとして実装）。
-     * @param model 読み込んだ3Dモデル
-     * @return 頂点座標リスト
-     */
     private List<float[]> getModelVertices(GltfModel model) {
-        // 実際にはモデルから頂点データを抽出する処理が必要です。
-        // モデルのメッシュやバッファを走査し、頂点データを取得するロジックを実装します。
-
         List<float[]> vertices = new ArrayList<>();
 
-        // 仮に (0,0,0) の頂点を持つモデルを処理する場合:
-        vertices.add(new float[]{0.0f, 0.0f, 0.0f});
-        vertices.add(new float[]{1.0f, 1.0f, 1.0f});
-        vertices.add(new float[]{2.0f, 2.0f, 2.0f});
+        if (model instanceof GltfModelV2 modelV2) {
+            modelV2.getNodeModels().forEach(node -> extractVerticesFromNode(node, vertices));
+        }
 
         return vertices;
+    }
+
+    private void extractVerticesFromNode(NodeModel node, List<float[]> vertices) {
+        node.getMeshModels().forEach(mesh ->
+            mesh.getMeshPrimitiveModels().forEach(primitive -> {
+                primitive.getAttributes().forEach((attributeName, accessorModel) -> {
+                    if ("POSITION".equals(attributeName)) {
+                        AccessorData accessorData = accessorModel.getAccessorData();
+                        FloatBuffer floatBuffer = accessorData.createByteBuffer().asFloatBuffer();
+                        while (floatBuffer.hasRemaining()) {
+                            float[] vertex = new float[3];
+                            floatBuffer.get(vertex);
+                            vertices.add(vertex);
+                        }
+                    }
+                });
+            })
+        );
+
+        // 子ノードも再帰的に処理
+        node.getChildren().forEach(child -> extractVerticesFromNode(child, vertices));
     }
 }
