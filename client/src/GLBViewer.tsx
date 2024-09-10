@@ -68,7 +68,7 @@ const GLBViewer: React.FC = () => {
         if (modelBlob) {
           const formData = new FormData();
           formData.append('file', modelBlob, 'model.glb');
-          formData.append('voxelSize', '0.06');
+          formData.append('voxelSize', '0.1');
 
           axios
             .post('http://localhost:8080/upload', formData, {
