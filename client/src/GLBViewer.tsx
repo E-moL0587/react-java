@@ -5,11 +5,13 @@ import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
 const GLBViewer: React.FC = () => {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(''); // サーバーからのメッセージを表示
+  const [serverData, setServerData] = useState<any>(null); // サーバーからのデータを管理するためのstate
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<Scene | null>(null);
 
   useEffect(() => {
+    // サーバーから初期メッセージを取得
     axios.get('http://localhost:8080/')
       .then(response => setMessage(response.data))
       .catch(error => console.error('Error fetching message:', error));
@@ -33,6 +35,7 @@ const GLBViewer: React.FC = () => {
     const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene);
     light.intensity = 10;
 
+    // GLBファイルをシーンに読み込む
     SceneLoader.Append(
       '',
       'guitar.glb',
@@ -59,6 +62,7 @@ const GLBViewer: React.FC = () => {
     }
   };
 
+  // モデルをサーバーに送信し、サーバーからデータを受け取る
   const sendModelToServer = () => {
     if (sceneRef.current) {
       GLTF2Export.GLBAsync(sceneRef.current, 'model.glb').then((glb) => {
@@ -76,7 +80,10 @@ const GLBViewer: React.FC = () => {
                 'Content-Type': 'multipart/form-data',
               },
             })
-            .then(() => alert('Model uploaded successfully!'))
+            .then(response => {
+              alert('Model uploaded successfully!');
+              setServerData(response.data); // サーバーからのデータをセット
+            })
             .catch((error) => console.error('Error uploading model:', error));
         } else {
           console.error('No valid Blob found in the exported GLTF files.');
@@ -92,6 +99,19 @@ const GLBViewer: React.FC = () => {
       <br />
       <button onClick={exportGLB}>Export Model</button>
       <button onClick={sendModelToServer}>Send to Server</button>
+
+      {serverData && (
+        <div>
+          <h2>Server Data:</h2>
+          <ul>
+            {serverData.map((point: { x: number; y: number; z: number }, index: number) => (
+              <li key={index}>
+                X: {point.x}, Y: {point.y}, Z: {point.z}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </>
   );
 };
