@@ -106,7 +106,7 @@ const GLBViewer: React.FC = () => {
           <ul>
             {serverData.map((point: { x: number; y: number; z: number }, index: number) => (
               <li key={index}>
-                X: {point.x}, Y: {point.y}, Z: {point.z}
+                X: {point.x.toFixed(5)}, Y: {point.y.toFixed(5)}, Z: {point.z.toFixed(5)}
               </li>
             ))}
           </ul>
