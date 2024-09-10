@@ -3,7 +3,7 @@ package com.example.server;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,7 +37,7 @@ public class VoxelController {
 
     @PostMapping("/upload")
     public List<Map<String, Float>> uploadFile(@RequestParam MultipartFile file) {
-        List<Map<String, Float>> vertexList = new ArrayList<>();  // 頂点データを格納するリスト
+        List<Map<String, Float>> vertexList = new ArrayList<>();
 
         try {
             // GLBファイルを一時ディレクトリに保存
@@ -59,22 +59,25 @@ public class VoxelController {
                             // 頂点情報を取得
                             AccessorModel positionAccessor = primitive.getAttributes().get("POSITION");
                             if (positionAccessor != null) {
-                                // BufferViewModelからBufferModelを取得し、そこからデータを取得
                                 ByteBuffer bufferData = positionAccessor.getBufferViewModel().getBufferModel().getBufferData();
+                                bufferData.order(ByteOrder.LITTLE_ENDIAN); // エンディアンを設定
 
-                                // ByteBufferからFloatBufferに変換
-                                FloatBuffer positions = bufferData.asFloatBuffer();
-                                while (positions.hasRemaining()) {
-                                    float x = positions.get();
-                                    float y = positions.get();
-                                    float z = positions.get();
+                                int count = positionAccessor.getCount(); // 頂点数を取得
+                                int stride = positionAccessor.getByteStride() > 0 ? positionAccessor.getByteStride() : 12; // ストライド
+                                int offset = positionAccessor.getByteOffset(); // オフセット
 
-                                    // 頂点データをマップに格納
+                                for (int i = 0; i < count; i++) {
+                                    int baseOffset = offset + i * stride;
+
+                                    float x = bufferData.getFloat(baseOffset);
+                                    float y = bufferData.getFloat(baseOffset + 4);
+                                    float z = bufferData.getFloat(baseOffset + 8);
+
                                     Map<String, Float> vertex = new HashMap<>();
                                     vertex.put("x", x);
                                     vertex.put("y", y);
                                     vertex.put("z", z);
-                                    vertexList.add(vertex);  // リストに追加
+                                    vertexList.add(vertex);
 
                                     logger.info("Vertex: x={}, y={}, z={}", x, y, z);
                                 }
@@ -90,7 +93,6 @@ public class VoxelController {
             logger.error("IllegalStateException occurred while uploading file: " + e.getMessage());
         }
 
-        // 頂点データのリストを返却
         return vertexList;
     }
 }
