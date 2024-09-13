@@ -1,6 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, SceneLoader, Color4, MeshBuilder } from '@babylonjs/core';
+import {
+  Engine,
+  Scene,
+  ArcRotateCamera,
+  Vector3,
+  HemisphericLight,
+  SceneLoader,
+  Color4,
+  PointsCloudSystem,
+  SolidParticle
+} from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
@@ -54,6 +64,7 @@ const GLBViewer: React.FC = () => {
     return () => engine.dispose();
   }, []);
 
+  // ボクセルシーンの初期化（点群）
   useEffect(() => {
     if (!serverData || !voxelCanvasRef.current) return;
 
@@ -67,16 +78,22 @@ const GLBViewer: React.FC = () => {
     const light = new HemisphericLight('voxelLight', new Vector3(1, 1, 0), scene);
     light.intensity = 0.8;
 
-    serverData.slice(0, 100).forEach((point: { x: number; y: number; z: number }) => {
-      const voxel = MeshBuilder.CreateSphere(
-        'voxel',
-        { diameter: 0.1 },
-        scene
-      );
-      voxel.position = new Vector3(point.x, point.y, point.z);
+    // 点群システムを作成
+    const pcs = new PointsCloudSystem('pcs', 1, scene);
+
+    // 各ボクセルを点として追加
+    serverData.forEach((point: { x: number; y: number; z: number }) => {
+      pcs.addPoints(1, (particle: SolidParticle) => {
+        particle.position.x = point.x;
+        particle.position.y = point.y;
+        particle.position.z = point.z;
+      });
     });
 
-    engine.runRenderLoop(() => scene.render());
+    // 点群の構築とレンダリング
+    pcs.buildMeshAsync().then(() => {
+      engine.runRenderLoop(() => scene.render());
+    });
 
     window.addEventListener('resize', () => engine.resize());
 
@@ -109,7 +126,7 @@ const GLBViewer: React.FC = () => {
             })
             .then(response => {
               alert('Model uploaded successfully!');
-              setServerData(response.data); // Set voxel data
+              setServerData(response.data);
             })
             .catch((error) => console.error('Error uploading model:', error));
         } else {
