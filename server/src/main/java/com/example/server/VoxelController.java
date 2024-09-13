@@ -58,34 +58,15 @@ public class VoxelController {
 
     private List<Map<String, Float>> voxelizeModel(GltfModel model, float voxelSize) {
         List<Map<String, Float>> voxelCenters = new ArrayList<>();
-
-        // モデルの頂点情報を取得
         List<float[]> vertices = getModelVertices(model);
 
-        // ボクセル化
-        Map<String, Boolean> voxelMap = new HashMap<>();
+        // 頂点情報をボクセルにスナップ
         for (float[] vertex : vertices) {
-            int vx = (int) Math.floor(vertex[0] / voxelSize);
-            int vy = (int) Math.floor(vertex[1] / voxelSize);
-            int vz = (int) Math.floor(vertex[2] / voxelSize);
-
-            String voxelKey = vx + "_" + vy + "_" + vz;
-            if (!voxelMap.containsKey(voxelKey)) {
-                // ボクセルの中心座標を計算
-                float centerX = (vx + 0.5f) * voxelSize;
-                float centerY = (vy + 0.5f) * voxelSize;
-                float centerZ = (vz + 0.5f) * voxelSize;
-
-                // ボクセルの中心座標を保存
-                Map<String, Float> voxelCenter = new HashMap<>();
-                voxelCenter.put("x", centerX);
-                voxelCenter.put("y", centerY);
-                voxelCenter.put("z", centerZ);
-                voxelCenters.add(voxelCenter);
-
-                // ボクセルが既に登録されているかマーク
-                voxelMap.put(voxelKey, true);
-            }
+            Map<String, Float> voxel = new HashMap<>();
+            voxel.put("x", Math.round(vertex[0] / voxelSize) * voxelSize);
+            voxel.put("y", Math.round(vertex[1] / voxelSize) * voxelSize);
+            voxel.put("z", Math.round(vertex[2] / voxelSize) * voxelSize);
+            voxelCenters.add(voxel);
         }
 
         return voxelCenters;

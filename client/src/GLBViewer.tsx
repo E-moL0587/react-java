@@ -1,14 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, SceneLoader, Color4 } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, SceneLoader, Color4, MeshBuilder } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
 const GLBViewer: React.FC = () => {
   const [message, setMessage] = useState('');
   const [serverData, setServerData] = useState<any>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modelCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const voxelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const sceneRef = useRef<Scene | null>(null);
+  const voxelSceneRef = useRef<Scene | null>(null);
 
   useEffect(() => {
     axios.get('http://localhost:8080/')
@@ -17,7 +19,7 @@ const GLBViewer: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
+    const canvas = modelCanvasRef.current;
     if (!canvas) return;
 
     const engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
@@ -52,6 +54,35 @@ const GLBViewer: React.FC = () => {
     return () => engine.dispose();
   }, []);
 
+  useEffect(() => {
+    if (!serverData || !voxelCanvasRef.current) return;
+
+    const engine = new Engine(voxelCanvasRef.current, true, { antialias: true, adaptToDeviceRatio: true });
+    const scene = new Scene(engine);
+    voxelSceneRef.current = scene;
+
+    const camera = new ArcRotateCamera('voxelCamera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, 10, Vector3.Zero(), scene);
+    camera.attachControl(voxelCanvasRef.current, true);
+
+    const light = new HemisphericLight('voxelLight', new Vector3(1, 1, 0), scene);
+    light.intensity = 0.8;
+
+    serverData.slice(0, 100).forEach((point: { x: number; y: number; z: number }) => {
+      const voxel = MeshBuilder.CreateSphere(
+        'voxel',
+        { diameter: 0.1 },
+        scene
+      );
+      voxel.position = new Vector3(point.x, point.y, point.z);
+    });
+
+    engine.runRenderLoop(() => scene.render());
+
+    window.addEventListener('resize', () => engine.resize());
+
+    return () => engine.dispose();
+  }, [serverData]);
+
   const exportGLB = () => {
     if (sceneRef.current) {
       GLTF2Export.GLBAsync(sceneRef.current, 'model.glb').then((glb: { downloadFiles: () => void }) => {
@@ -78,7 +109,7 @@ const GLBViewer: React.FC = () => {
             })
             .then(response => {
               alert('Model uploaded successfully!');
-              setServerData(response.data);
+              setServerData(response.data); // Set voxel data
             })
             .catch((error) => console.error('Error uploading model:', error));
         } else {
@@ -91,16 +122,25 @@ const GLBViewer: React.FC = () => {
   return (
     <>
       <h1>{message || 'Loading...'}</h1>
-      <canvas ref={canvasRef} style={{ width: '400px', height: '400px' }} />
+
+      <canvas ref={modelCanvasRef} style={{ width: '400px', height: '400px' }} />
+
+      {serverData && (
+        <>
+          <h2>Voxel Model:</h2>
+          <canvas ref={voxelCanvasRef} style={{ width: '400px', height: '400px' }} />
+        </>
+      )}
+
       <br />
       <button onClick={exportGLB}>Export Model</button>
       <button onClick={sendModelToServer}>Send to Server</button>
 
       {serverData && (
         <div>
-          <h2>Server Data:</h2>
+          <h2>Voxel Data:</h2>
           <ul>
-            {serverData.map((point: { x: number; y: number; z: number }, index: number) => (
+            {serverData.slice(0, 100).map((point: { x: number; y: number; z: number }, index: number) => (
               <li key={index}>
                 {point.x.toFixed(2)}, {point.y.toFixed(2)}, {point.z.toFixed(2)}
               </li>
