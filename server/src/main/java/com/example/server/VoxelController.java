@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.joml.Matrix4f;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -60,7 +63,6 @@ public class VoxelController {
         List<Map<String, Float>> voxelCenters = new ArrayList<>();
         List<float[]> vertices = getModelVertices(model);
 
-        // 頂点情報をボクセルにスナップ
         for (float[] vertex : vertices) {
             Map<String, Float> voxel = new HashMap<>();
             voxel.put("x", Math.round(vertex[0] / voxelSize) * voxelSize);
@@ -75,6 +77,7 @@ public class VoxelController {
     private List<float[]> getModelVertices(GltfModel model) {
         List<float[]> vertices = new ArrayList<>();
 
+        // GLTFモデルがGltfModelV2のインスタンスの場合、ノードごとに頂点を取得
         if (model instanceof GltfModelV2 modelV2) {
             modelV2.getNodeModels().forEach(node -> extractVerticesFromNode(node, vertices));
         }
@@ -82,7 +85,35 @@ public class VoxelController {
         return vertices;
     }
 
+    // 各ノードから頂点を抽出し、変換行列を適用する
     private void extractVerticesFromNode(NodeModel node, List<float[]> vertices) {
+        // ノードの変換行列を取得
+        Matrix4f transform = new Matrix4f();
+
+        // スケール、回転、位置を取得して行列に適用
+        Vector3f translation = new Vector3f(0.0f, 0.0f, 0.0f);
+        if (node.getTranslation() != null) {
+            float[] translationArray = node.getTranslation();
+            translation.set(translationArray[0], translationArray[1], translationArray[2]);
+        }
+
+        Vector3f scale = new Vector3f(1.0f, 1.0f, 1.0f);
+        if (node.getScale() != null) {
+            float[] scaleArray = node.getScale();
+            scale.set(scaleArray[0], scaleArray[1], scaleArray[2]);
+        }
+
+        float[] rotationArray = new float[4];
+        if (node.getRotation() != null) {
+            rotationArray = node.getRotation();
+        }
+
+        // 行列に適用
+        transform.translate(translation);
+        transform.scale(scale);
+        transform.rotate(new Quaternionf(rotationArray[0], rotationArray[1], rotationArray[2], rotationArray[3]));
+
+        // メッシュごとに処理
         node.getMeshModels().forEach(mesh ->
             mesh.getMeshPrimitiveModels().forEach(primitive -> {
                 primitive.getAttributes().forEach((attributeName, accessorModel) -> {
@@ -92,7 +123,13 @@ public class VoxelController {
                         while (floatBuffer.hasRemaining()) {
                             float[] vertex = new float[3];
                             floatBuffer.get(vertex);
-                            vertices.add(vertex);
+
+                            // 頂点に変換行列を適用
+                            Vector3f transformedVertex = new Vector3f(vertex[0], vertex[1], vertex[2]);
+                            transform.transformPosition(transformedVertex);
+
+                            // 頂点をリストに追加
+                            vertices.add(new float[]{transformedVertex.x, transformedVertex.y, transformedVertex.z});
                         }
                     }
                 });
