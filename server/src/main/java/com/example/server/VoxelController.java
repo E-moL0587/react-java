@@ -2,6 +2,7 @@ package com.example.server;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,6 +47,31 @@ public class VoxelController {
 
             // GLBファイルを読み込み
             GltfModel model = new GltfModelReader().read(tempFile.toURI());
+
+            if (model instanceof GltfModelV2 modelV2) {
+                // GLTFモデルのノードとバッファの情報を取得
+                logger.info("GLTF Model Information:");
+
+                modelV2.getNodeModels().forEach(node -> {
+                    logger.info("Node: " + node.getName());
+                    node.getMeshModels().forEach(mesh -> {
+                        logger.info("  Mesh: " + mesh.getName());
+                        mesh.getMeshPrimitiveModels().forEach(primitive -> {
+                            primitive.getAttributes().forEach((attrName, accessor) -> {
+                                logger.info("    Attribute: " + attrName);
+                            });
+                        });
+                    });
+                });
+
+                // バイナリデータをログに出力
+                modelV2.getBufferModels().forEach(bufferModel -> {
+                    ByteBuffer byteBuffer = bufferModel.getBufferData();
+                    byte[] binaryData = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(binaryData);
+                    logger.info("GLTF Binary data (hex):\n" + bytesToHex(binaryData));
+                });
+            }
 
             // ボクセル化処理
             voxelCenters = voxelizeModel(model, voxelSize);
@@ -138,5 +164,13 @@ public class VoxelController {
 
         // 子ノードも再帰的に処理
         node.getChildren().forEach(child -> extractVerticesFromNode(child, vertices));
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }
