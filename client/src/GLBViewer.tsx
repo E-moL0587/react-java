@@ -76,7 +76,7 @@ const GLBViewer: React.FC = () => {
       const redMaterial = new StandardMaterial('redMaterial', voxelScene);
       redMaterial.diffuseColor = new Color3(1, 0, 0);
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-      const cellSize = minSize / 40;
+      const cellSize = minSize / 20;
 
       const drawGrid = () => {
         const intersectedCells = new Set<string>();
@@ -144,8 +144,8 @@ const GLBViewer: React.FC = () => {
   return (
     <>
       <h1>{message || 'Loading...'}</h1>
-      <canvas ref={modelCanvasRef} style={{ width: '400px', height: '400px' }} />
-      <canvas ref={voxelCanvasRef} style={{ width: '400px', height: '400px' }} />
+      <canvas ref={modelCanvasRef} style={{ width: '300px', height: '300px' }} />
+      <canvas ref={voxelCanvasRef} style={{ width: '300px', height: '300px' }} />
       <br />
       <button onClick={exportGLB}>Export Model</button>
     </>
