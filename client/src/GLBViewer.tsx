@@ -76,7 +76,7 @@ const GLBViewer: React.FC = () => {
       const redMaterial = new StandardMaterial('redMaterial', voxelScene);
       redMaterial.diffuseColor = new Color3(1, 0, 0);
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-      const cellSize = minSize / 20;
+      const cellSize = minSize / 10;
 
       const drawGrid = () => {
         const intersectedCells = new Set<string>();
