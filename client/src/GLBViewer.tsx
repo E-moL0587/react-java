@@ -76,7 +76,7 @@ const GLBViewer: React.FC = () => {
 
       const boxSize = max.subtract(min);
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-      const cellSize = minSize / 40;
+      const cellSize = minSize / 10;
 
       const sps = new SolidParticleSystem('sps', voxelScene);
       const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelScene);
@@ -147,8 +147,8 @@ const GLBViewer: React.FC = () => {
   return (
     <>
       <h1>{message || 'Loading...'}</h1>
-      <canvas ref={modelCanvasRef} style={{ width: '300px', height: '300px' }} />
-      <canvas ref={voxelCanvasRef} style={{ width: '300px', height: '300px' }} />
+      <canvas ref={modelCanvasRef} style={{ width: '800px', height: '800px' }} />
+      <canvas ref={voxelCanvasRef} style={{ width: '800px', height: '800px' }} />
       <br />
       <button onClick={exportGLB}>Export Model</button>
     </>
