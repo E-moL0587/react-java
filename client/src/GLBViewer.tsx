@@ -121,8 +121,7 @@ const GLBViewer: React.FC = () => {
 
       const voxelMesh = sps.buildMesh();
       const voxelMaterial = new StandardMaterial('voxelMaterial', voxelScene);
-      voxelMaterial.diffuseColor = new Color3(1, 0, 0);
-      voxelMaterial.wireframe = true;
+      voxelMaterial.diffuseColor = new Color3(0, 0, 1);
       voxelMesh.material = voxelMaterial;
 
       voxelTemplate.dispose();
