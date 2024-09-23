@@ -1,20 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import {
-  Engine,
-  Scene,
-  ArcRotateCamera,
-  Vector3,
-  HemisphericLight,
-  Color4,
-  StandardMaterial,
-  Color3,
-  Ray,
-  PickingInfo,
-  SolidParticleSystem,
-  MeshBuilder,
-  SceneLoader,
-} from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Color4, StandardMaterial, Color3, Ray, PickingInfo, SolidParticleSystem, MeshBuilder, SceneLoader } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
 
@@ -63,7 +49,6 @@ const GLBViewer: React.FC = () => {
     const voxelLight = new HemisphericLight('voxelLight', new Vector3(1, 1, 0), voxelScene);
     voxelLight.intensity = 10;
 
-    // カメラ同期
     modelCamera.onViewMatrixChangedObservable.add(() => {
       voxelCamera.alpha = modelCamera.alpha;
       voxelCamera.beta = modelCamera.beta;
@@ -91,7 +76,7 @@ const GLBViewer: React.FC = () => {
 
       const boxSize = max.subtract(min);
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-      const cellSize = minSize / 10;
+      const cellSize = minSize / 20;
 
       const sps = new SolidParticleSystem('sps', voxelScene);
       const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelScene);
@@ -128,7 +113,7 @@ const GLBViewer: React.FC = () => {
         const cellMin = new Vector3(min.x + x * cellSize, min.y + y * cellSize, min.z + z * cellSize);
         const cellCenter = cellMin.add(new Vector3(cellSize / 2, cellSize / 2, cellSize / 2));
         sps.addShape(voxelTemplate, 1, {
-          positionFunction: (particle: { position: Vector3 }) => { // 型注釈を追加
+          positionFunction: (particle: { position: Vector3 }) => {
             particle.position = cellCenter;
           }
         });
@@ -137,7 +122,7 @@ const GLBViewer: React.FC = () => {
       const voxelMesh = sps.buildMesh();
       const voxelMaterial = new StandardMaterial('voxelMaterial', voxelScene);
       voxelMaterial.diffuseColor = new Color3(1, 0, 0);
-      voxelMaterial.wireframe = true; // ワイヤーフレームを有効にしてエッジを表示
+      voxelMaterial.wireframe = true;
       voxelMesh.material = voxelMaterial;
 
       voxelTemplate.dispose();
@@ -167,7 +152,7 @@ const GLBViewer: React.FC = () => {
 
   const exportVoxelGLB = () => {
     if (voxelSceneRef.current) {
-      GLTF2Export.GLBAsync(voxelSceneRef.current, 'voxelModel.glb')
+      GLTF2Export.GLBAsync(voxelSceneRef.current, 'voxel.glb')
         .then(glb => glb.downloadFiles())
         .catch(error => console.error('Error exporting voxel GLB:', error));
     }
@@ -191,7 +176,7 @@ const GLBViewer: React.FC = () => {
             style={{ width: '800px', height: '800px', border: '1px solid black' }}
           />
           <br />
-          <button onClick={exportVoxelGLB}>Export Voxel Model</button>
+          <button onClick={exportVoxelGLB}>Export Voxel</button>
         </div>
       </div>
     </>
