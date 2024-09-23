@@ -6,13 +6,15 @@ import {
   ArcRotateCamera,
   Vector3,
   HemisphericLight,
-  SceneLoader,
   Color4,
   StandardMaterial,
-  MeshBuilder,
   Color3,
   Ray,
   PickingInfo,
+  SolidParticleSystem,
+  MeshBuilder,
+  SceneLoader,
+  SolidParticle,
 } from '@babylonjs/core';
 import '@babylonjs/loaders';
 import { GLTF2Export } from '@babylonjs/serializers';
@@ -73,51 +75,52 @@ const GLBViewer: React.FC = () => {
       });
 
       const boxSize = max.subtract(min);
-      const redMaterial = new StandardMaterial('redMaterial', voxelScene);
-      redMaterial.diffuseColor = new Color3(1, 0, 0);
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-      const cellSize = minSize / 10;
+      const cellSize = minSize / 40;
 
-      const drawGrid = () => {
-        const intersectedCells = new Set<string>();
+      const sps = new SolidParticleSystem('sps', voxelScene);
+      const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelScene);
 
-        for (let x = 0; x <= Math.ceil(boxSize.x / cellSize); x++) {
-          for (let y = 0; y <= Math.ceil(boxSize.y / cellSize); y++) {
-            for (let z = 0; z <= Math.ceil(boxSize.z / cellSize); z++) {
-              const cellMin = new Vector3(min.x + x * cellSize, min.y + y * cellSize, min.z + z * cellSize);
-              const cellCenter = cellMin.add(new Vector3(cellSize / 2, cellSize / 2, cellSize / 2));
+      const intersectedCells = new Set<string>();
+      for (let x = 0; x <= Math.ceil(boxSize.x / cellSize); x++) {
+        for (let y = 0; y <= Math.ceil(boxSize.y / cellSize); y++) {
+          for (let z = 0; z <= Math.ceil(boxSize.z / cellSize); z++) {
+            const cellMin = new Vector3(min.x + x * cellSize, min.y + y * cellSize, min.z + z * cellSize);
+            const cellCenter = cellMin.add(new Vector3(cellSize / 2, cellSize / 2, cellSize / 2));
 
-              const directions = [
-                new Vector3(0, 1, 0),
-                new Vector3(0, -1, 0),
-                new Vector3(1, 0, 0),
-                new Vector3(-1, 0, 0),
-                new Vector3(0, 0, 1),
-                new Vector3(0, 0, -1),
-              ];
+            const directions = [
+              new Vector3(0, 1, 0),
+              new Vector3(0, -1, 0),
+              new Vector3(1, 0, 0),
+              new Vector3(-1, 0, 0),
+              new Vector3(0, 0, 1),
+              new Vector3(0, 0, -1),
+            ];
 
-              const hitInAllDirections = directions.every(direction => {
-                const pickInfo: PickingInfo | null = scene.pickWithRay(new Ray(cellCenter, direction), mesh => mesh.isVisible);
-                return pickInfo && pickInfo.hit;
-              });
+            const hitInAllDirections = directions.every(direction => {
+              const pickInfo: PickingInfo | null = scene.pickWithRay(new Ray(cellCenter, direction), mesh => mesh.isVisible);
+              return pickInfo && pickInfo.hit;
+            });
 
-              if (hitInAllDirections) intersectedCells.add(`${x}-${y}-${z}`);
-            }
+            if (hitInAllDirections) intersectedCells.add(`${x}-${y}-${z}`);
           }
         }
+      }
 
-        intersectedCells.forEach(cell => {
-          const [x, y, z] = cell.split('-').map(Number);
-          const cellMin = new Vector3(min.x + x * cellSize, min.y + y * cellSize, min.z + z * cellSize);
-          const cellCenter = cellMin.add(new Vector3(cellSize / 2, cellSize / 2, cellSize / 2));
-          const gridCell = MeshBuilder.CreateBox(`gridCell_${x}_${y}_${z}`, { size: cellSize }, voxelScene);
-          gridCell.position = cellCenter;
-          gridCell.material = redMaterial;
-        });
-      };
+      intersectedCells.forEach(cell => {
+        const [x, y, z] = cell.split('-').map(Number);
+        const cellMin = new Vector3(min.x + x * cellSize, min.y + y * cellSize, min.z + z * cellSize);
+        const cellCenter = cellMin.add(new Vector3(cellSize / 2, cellSize / 2, cellSize / 2));
+        sps.addShape(voxelTemplate, 1, { positionFunction: (particle: SolidParticle) => {
+          particle.position = cellCenter;
+        }});
+      });
 
-      drawGrid();
-    }, undefined, message => console.error('Failed to load model:', message));
+      const voxelMesh = sps.buildMesh();
+      (voxelMesh.material as StandardMaterial).diffuseColor = new Color3(1, 0, 0);
+
+      voxelTemplate.dispose();
+    }, undefined, (message, exception) => console.error('Failed to load model:', message, exception));
 
     engine.runRenderLoop(() => scene.render());
     voxelEngine.runRenderLoop(() => voxelScene.render());
