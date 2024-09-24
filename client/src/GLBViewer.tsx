@@ -7,10 +7,13 @@ import { GLTF2Export } from '@babylonjs/serializers';
 const GLBViewer: React.FC = () => {
   const [message, setMessage] = useState('');
   const [voxelCoordinates, setVoxelCoordinates] = useState<{ x: number, y: number, z: number }[]>([]);
+  const [meshCoordinates, setMeshCoordinates] = useState<{ x: number, y: number, z: number }[]>([]);
   const modelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const voxelCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const meshCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelSceneRef = useRef<Scene | null>(null);
   const voxelSceneRef = useRef<Scene | null>(null);
+  const meshSceneRef = useRef<Scene | null>(null);
 
   useEffect(() => {
     axios.get('http://localhost:8080/')
@@ -56,16 +59,16 @@ const GLBViewer: React.FC = () => {
     }
   };
 
-  const sendVoxelData = () => {
-    const voxelData = Array.from({ length: 100 }, () => ({
-      x: Math.floor(Math.random() * 10),
-      y: Math.floor(Math.random() * 10),
-      z: Math.floor(Math.random() * 10)
+  const generateVoxelData = () => {
+    const voxelData = voxelCoordinates.map(coord => ({
+      x: coord.x,
+      y: coord.y,
+      z: coord.z
     }));
 
     axios.post('http://localhost:8080/upload', voxelData)
       .then(response => {
-        setVoxelCoordinates(response.data);
+        setMeshCoordinates(response.data);
       })
       .catch(error => console.error('Error sending voxel data:', error));
   };
@@ -73,10 +76,12 @@ const GLBViewer: React.FC = () => {
   useEffect(() => {
     const modelCanvas = modelCanvasRef.current;
     const voxelCanvas = voxelCanvasRef.current;
-    if (!modelCanvas || !voxelCanvas) return;
+    const meshCanvas = meshCanvasRef.current;
+    if (!modelCanvas || !voxelCanvas || !meshCanvas) return;
 
     const modelEngine = initializeScene(modelCanvas, new Color4(1, 0.9, 1, 1), modelSceneRef, false);
     const voxelEngine = initializeScene(voxelCanvas, new Color4(0.9, 0.9, 1, 1), voxelSceneRef, true);
+    const meshEngine = initializeScene(meshCanvas, new Color4(0.8, 0.8, 1, 1), meshSceneRef, false);
 
     SceneLoader.Append('', 'guitar.glb', modelSceneRef.current!, () => {
       let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
@@ -97,6 +102,8 @@ const GLBViewer: React.FC = () => {
       const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelSceneRef.current!);
 
       const intersectedCells = new Set<string>();
+      const newVoxelCoordinates: { x: number, y: number, z: number }[] = [];
+
       for (let x = 0; x <= Math.ceil(boxSize.x / cellSize); x++) {
         for (let y = 0; y <= Math.ceil(boxSize.y / cellSize); y++) {
           for (let z = 0; z <= Math.ceil(boxSize.z / cellSize); z++) {
@@ -118,10 +125,19 @@ const GLBViewer: React.FC = () => {
               return pickInfo?.hit;
             });
 
-            if (hitInAllDirections) intersectedCells.add(`${x}-${y}-${z}`);
+            if (hitInAllDirections) {
+              intersectedCells.add(`${x}-${y}-${z}`);
+              newVoxelCoordinates.push({
+                x: cellCenter.x,
+                y: cellCenter.y,
+                z: cellCenter.z
+              });
+            }
           }
         }
       }
+
+      setVoxelCoordinates(newVoxelCoordinates); // Store voxel coordinates
 
       intersectedCells.forEach(cell => {
         const [x, y, z] = cell.split('-').map(Number);
@@ -144,15 +160,20 @@ const GLBViewer: React.FC = () => {
 
     modelEngine.runRenderLoop(() => modelSceneRef.current?.render());
     voxelEngine.runRenderLoop(() => voxelSceneRef.current?.render());
+    meshEngine.runRenderLoop(() => meshSceneRef.current?.render());
 
     window.addEventListener('resize', () => {
       modelEngine.resize();
       voxelEngine.resize();
+      meshEngine.resize();
     });
+
+    generateVoxelData();
 
     return () => {
       modelEngine.dispose();
       voxelEngine.dispose();
+      meshEngine.dispose();
     };
   }, []);
 
@@ -161,25 +182,38 @@ const GLBViewer: React.FC = () => {
       <h1>{message || 'Loading...'}</h1>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
+          <h2>Model Viewer</h2>
           <canvas
             ref={modelCanvasRef}
-            style={{ width: '600px', height: '600px', border: '1px solid black' }}
+            style={{ width: '400px', height: '400px', border: '1px solid black' }}
           />
-          <br />
-          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
-          <button onClick={sendVoxelData}>Send Voxel Data</button>
+          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model GLB</button>
         </div>
         <div>
+          <h2>Voxel Viewer</h2>
           <canvas
             ref={voxelCanvasRef}
-            style={{ width: '600px', height: '600px', border: '1px solid black' }}
+            style={{ width: '400px', height: '400px', border: '1px solid black' }}
           />
-          <br />
-          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
-          <h2>Voxel Coordinates (50件):</h2>
+          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel GLB</button>
+          <h3>Voxel Coordinates:</h3>
           <ul>
             {voxelCoordinates.map((coord, index) => (
-              <li key={index}>X: {coord.x}, Y: {coord.y}, Z: {coord.z}</li>
+              <li key={index}>{`X: ${coord.x.toFixed(2)}, Y: ${coord.y.toFixed(2)}, Z: ${coord.z.toFixed(2)}`}</li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2>Mesh Viewer</h2>
+          <canvas
+            ref={meshCanvasRef}
+            style={{ width: '400px', height: '400px', border: '1px solid black' }}
+          />
+          <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh GLB</button>
+          <h3>Mesh Coordinates:</h3>
+          <ul>
+            {meshCoordinates.map((coord, index) => (
+              <li key={index}>{`X: ${coord.x.toFixed(2)}, Y: ${coord.y.toFixed(2)}, Z: ${coord.z.toFixed(2)}`}</li>
             ))}
           </ul>
         </div>
