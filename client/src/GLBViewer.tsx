@@ -171,13 +171,14 @@ const GLBViewer: React.FC = () => {
 
   return (
     <>
-      <h1>{message || 'Not connected to server...'}</h1>
-      <button onClick={connectServer}>Connect to Server</button>
-      <button onClick={initializeAllScenes}>Initialize Scenes</button>
-      <button onClick={generateVoxelData}>Send Voxel Data</button>
+      <h1>マーチングキューブ法の研究</h1>
+      <h2>{message || 'サーバには接続されていません...'}</h2>
+      <button onClick={connectServer}>サーバへの接続</button>
+      <button onClick={initializeAllScenes}>シーンの起動</button>
+      <button onClick={generateVoxelData}>データの送信</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
-          <h2>Model Viewer</h2>
+          <h2>元モデル画像</h2>
           <canvas
             ref={modelCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
@@ -185,13 +186,13 @@ const GLBViewer: React.FC = () => {
           <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
         </div>
         <div>
-          <h2>Voxel Viewer</h2>
+          <h2>ボクセル画像</h2>
           <canvas
             ref={voxelCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
           <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
-          <h3>Voxel Coordinates (Showing up to 50)</h3>
+          <h3>ボクセル座標</h3>
           <ul>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
               <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
@@ -199,13 +200,13 @@ const GLBViewer: React.FC = () => {
           </ul>
         </div>
         <div>
-          <h2>Mesh Viewer</h2>
+          <h2>メッシュ画像</h2>
           <canvas
             ref={meshCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
           <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh</button>
-          <h3>Mesh Coordinates (Showing up to 50)</h3>
+          <h3>メッシュ座標</h3>
           <ul>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
               <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
