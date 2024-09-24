@@ -172,7 +172,7 @@ const GLBViewer: React.FC = () => {
   return (
     <>
       <h1>マーチングキューブ法の研究</h1>
-      <h2>{message || 'サーバには接続されていません...'}</h2>
+      <h3>サーバ：{message || '接続されてません'}</h3>
       <button onClick={connectServer}>サーバへの接続</button>
       <button onClick={initializeAllScenes}>シーンの起動</button>
       <button onClick={generateVoxelData}>データの送信</button>
