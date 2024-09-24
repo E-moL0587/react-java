@@ -97,7 +97,7 @@ const GLBViewer: React.FC = () => {
               new Vector3(1, 0, 0),
               new Vector3(-1, 0, 0),
               new Vector3(0, 0, 1),
-              new Vector3(0, 0, -1),
+              new Vector3(0, 0, -1)
             ];
 
             const hitInAllDirections = directions.every(direction => {
@@ -151,7 +151,7 @@ const GLBViewer: React.FC = () => {
         <div>
           <canvas
             ref={modelCanvasRef}
-            style={{ width: '300px', height: '300px', border: '1px solid black' }}
+            style={{ width: '600px', height: '600px', border: '1px solid black' }}
           />
           <br />
           <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
@@ -159,7 +159,7 @@ const GLBViewer: React.FC = () => {
         <div>
           <canvas
             ref={voxelCanvasRef}
-            style={{ width: '300px', height: '300px', border: '1px solid black' }}
+            style={{ width: '600px', height: '600px', border: '1px solid black' }}
           />
           <br />
           <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
