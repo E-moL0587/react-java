@@ -6,6 +6,7 @@ import { GLTF2Export } from '@babylonjs/serializers';
 
 const GLBViewer: React.FC = () => {
   const [message, setMessage] = useState('');
+  const [voxelCoordinates, setVoxelCoordinates] = useState<{ x: number, y: number, z: number }[]>([]);
   const modelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const voxelCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const modelSceneRef = useRef<Scene | null>(null);
@@ -17,7 +18,6 @@ const GLBViewer: React.FC = () => {
       .catch(error => console.error('Error fetching message:', error));
   }, []);
 
-  // キャンバスとシーン設定
   const initializeScene = (canvas: HTMLCanvasElement, clearColor: Color4, sceneRef: React.MutableRefObject<Scene | null>, isVoxelScene: boolean) => {
     const engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
     const scene = new Scene(engine);
@@ -41,7 +41,6 @@ const GLBViewer: React.FC = () => {
     return engine;
   };
 
-  // カメラの同期
   const syncCameras = (sourceCamera: ArcRotateCamera, targetCamera: ArcRotateCamera) => {
     targetCamera.alpha = sourceCamera.alpha;
     targetCamera.beta = sourceCamera.beta;
@@ -49,13 +48,26 @@ const GLBViewer: React.FC = () => {
     targetCamera.target = sourceCamera.target.clone();
   };
 
-  // GLBエクスポート機能
   const exportGLB = (sceneRef: React.MutableRefObject<Scene | null>, fileName: string) => {
     if (sceneRef.current) {
       GLTF2Export.GLBAsync(sceneRef.current, fileName)
         .then(glb => glb.downloadFiles())
         .catch(error => console.error(`Error exporting ${fileName}:`, error));
     }
+  };
+
+  const sendVoxelData = () => {
+    const voxelData = Array.from({ length: 100 }, () => ({
+      x: Math.floor(Math.random() * 10),
+      y: Math.floor(Math.random() * 10),
+      z: Math.floor(Math.random() * 10)
+    }));
+
+    axios.post('http://localhost:8080/upload', voxelData)
+      .then(response => {
+        setVoxelCoordinates(response.data);
+      })
+      .catch(error => console.error('Error sending voxel data:', error));
   };
 
   useEffect(() => {
@@ -155,6 +167,7 @@ const GLBViewer: React.FC = () => {
           />
           <br />
           <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
+          <button onClick={sendVoxelData}>Send Voxel Data</button>
         </div>
         <div>
           <canvas
@@ -163,6 +176,12 @@ const GLBViewer: React.FC = () => {
           />
           <br />
           <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
+          <h2>Voxel Coordinates (50件):</h2>
+          <ul>
+            {voxelCoordinates.map((coord, index) => (
+              <li key={index}>X: {coord.x}, Y: {coord.y}, Z: {coord.z}</li>
+            ))}
+          </ul>
         </div>
       </div>
     </>
