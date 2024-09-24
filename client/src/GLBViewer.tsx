@@ -17,57 +17,60 @@ const GLBViewer: React.FC = () => {
       .catch(error => console.error('Error fetching message:', error));
   }, []);
 
-  useEffect(() => {
-    const canvas = modelCanvasRef.current;
-    const voxelCanvas = voxelCanvasRef.current;
-    if (!canvas || !voxelCanvas) return;
-
+  // キャンバスとシーン設定
+  const initializeScene = (canvas: HTMLCanvasElement, clearColor: Color4, sceneRef: React.MutableRefObject<Scene | null>, isVoxelScene: boolean) => {
     const engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
-    const voxelEngine = new Engine(voxelCanvas, true, { antialias: true, adaptToDeviceRatio: true });
+    const scene = new Scene(engine);
+    sceneRef.current = scene;
 
-    const modelScene = new Scene(engine);
-    const voxelScene = new Scene(voxelEngine);
-    modelSceneRef.current = modelScene;
-    voxelSceneRef.current = voxelScene;
+    scene.clearColor = clearColor;
 
-    modelScene.clearColor = new Color4(1, 0.9, 1, 1);
-    voxelScene.clearColor = new Color4(0.9, 0.9, 1, 1);
+    const camera = new ArcRotateCamera('camera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, 12, Vector3.Zero(), scene);
+    camera.attachControl(canvas, true);
+    camera.panningSensibility = 0;
+    camera.lowerRadiusLimit = camera.upperRadiusLimit = camera.radius;
 
-    const modelCamera = new ArcRotateCamera('modelCamera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, 12, Vector3.Zero(), modelScene);
-    modelCamera.attachControl(canvas, true);
-    modelCamera.panningSensibility = 0;
-    modelCamera.lowerRadiusLimit = modelCamera.upperRadiusLimit = modelCamera.radius;
+    const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene);
+    light.intensity = 10;
 
-    const voxelCamera = new ArcRotateCamera('voxelCamera', modelCamera.alpha, modelCamera.beta, modelCamera.radius, modelCamera.target.clone(), voxelScene);
-    voxelCamera.attachControl(voxelCanvas, true);
-    voxelCamera.panningSensibility = 0;
-    voxelCamera.lowerRadiusLimit = voxelCamera.upperRadiusLimit = voxelCamera.radius;
+    if (isVoxelScene && modelSceneRef.current) {
+      camera.onViewMatrixChangedObservable.add(() => syncCameras(camera, modelSceneRef.current!.activeCamera as ArcRotateCamera));
+      modelSceneRef.current!.activeCamera!.onViewMatrixChangedObservable.add(() => syncCameras(modelSceneRef.current!.activeCamera as ArcRotateCamera, camera));
+    }
 
-    const modelLight = new HemisphericLight('modelLight', new Vector3(1, 1, 0), modelScene);
-    modelLight.intensity = 10;
+    return engine;
+  };
 
-    const voxelLight = new HemisphericLight('voxelLight', new Vector3(1, 1, 0), voxelScene);
-    voxelLight.intensity = 10;
+  // カメラの同期
+  const syncCameras = (sourceCamera: ArcRotateCamera, targetCamera: ArcRotateCamera) => {
+    targetCamera.alpha = sourceCamera.alpha;
+    targetCamera.beta = sourceCamera.beta;
+    targetCamera.radius = sourceCamera.radius;
+    targetCamera.target = sourceCamera.target.clone();
+  };
 
-    modelCamera.onViewMatrixChangedObservable.add(() => {
-      voxelCamera.alpha = modelCamera.alpha;
-      voxelCamera.beta = modelCamera.beta;
-      voxelCamera.radius = modelCamera.radius;
-      voxelCamera.target = modelCamera.target.clone();
-    });
+  // GLBエクスポート機能
+  const exportGLB = (sceneRef: React.MutableRefObject<Scene | null>, fileName: string) => {
+    if (sceneRef.current) {
+      GLTF2Export.GLBAsync(sceneRef.current, fileName)
+        .then(glb => glb.downloadFiles())
+        .catch(error => console.error(`Error exporting ${fileName}:`, error));
+    }
+  };
 
-    voxelCamera.onViewMatrixChangedObservable.add(() => {
-      modelCamera.alpha = voxelCamera.alpha;
-      modelCamera.beta = voxelCamera.beta;
-      modelCamera.radius = voxelCamera.radius;
-      modelCamera.target = voxelCamera.target.clone();
-    });
+  useEffect(() => {
+    const modelCanvas = modelCanvasRef.current;
+    const voxelCanvas = voxelCanvasRef.current;
+    if (!modelCanvas || !voxelCanvas) return;
 
-    SceneLoader.Append('', 'guitar.glb', modelScene, () => {
+    const modelEngine = initializeScene(modelCanvas, new Color4(1, 0.9, 1, 1), modelSceneRef, false);
+    const voxelEngine = initializeScene(voxelCanvas, new Color4(0.9, 0.9, 1, 1), voxelSceneRef, true);
+
+    SceneLoader.Append('', 'guitar.glb', modelSceneRef.current!, () => {
       let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
       let max = new Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
-      modelScene.meshes.forEach(mesh => {
+      modelSceneRef.current!.meshes.forEach(mesh => {
         mesh.computeWorldMatrix(true);
         const boundingInfo = mesh.getBoundingInfo();
         min = Vector3.Minimize(min, boundingInfo.boundingBox.minimumWorld);
@@ -78,8 +81,8 @@ const GLBViewer: React.FC = () => {
       const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
       const cellSize = minSize / 10;
 
-      const sps = new SolidParticleSystem('sps', voxelScene);
-      const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelScene);
+      const sps = new SolidParticleSystem('sps', voxelSceneRef.current!);
+      const voxelTemplate = MeshBuilder.CreateBox('box', { size: cellSize }, voxelSceneRef.current!);
 
       const intersectedCells = new Set<string>();
       for (let x = 0; x <= Math.ceil(boxSize.x / cellSize); x++) {
@@ -99,7 +102,7 @@ const GLBViewer: React.FC = () => {
 
             const hitInAllDirections = directions.every(direction => {
               const ray = new Ray(cellCenter, direction, 1000);
-              const pickInfo: PickingInfo | null = modelScene.pickWithRay(ray, mesh => mesh.isVisible);
+              const pickInfo: PickingInfo | null = modelSceneRef.current!.pickWithRay(ray, mesh => mesh.isVisible);
               return pickInfo?.hit;
             });
 
@@ -120,42 +123,26 @@ const GLBViewer: React.FC = () => {
       });
 
       const voxelMesh = sps.buildMesh();
-      const voxelMaterial = new StandardMaterial('voxelMaterial', voxelScene);
+      const voxelMaterial = new StandardMaterial('voxelMaterial', voxelSceneRef.current!);
       voxelMaterial.diffuseColor = new Color3(0, 0, 1);
       voxelMesh.material = voxelMaterial;
 
       voxelTemplate.dispose();
     }, undefined, (message, exception) => console.error('Failed to load model:', message, exception));
 
-    engine.runRenderLoop(() => modelScene.render());
-    voxelEngine.runRenderLoop(() => voxelScene.render());
+    modelEngine.runRenderLoop(() => modelSceneRef.current?.render());
+    voxelEngine.runRenderLoop(() => voxelSceneRef.current?.render());
 
     window.addEventListener('resize', () => {
-      engine.resize();
+      modelEngine.resize();
       voxelEngine.resize();
     });
 
     return () => {
-      engine.dispose();
+      modelEngine.dispose();
       voxelEngine.dispose();
     };
   }, []);
-
-  const exportModelGLB = () => {
-    if (modelSceneRef.current) {
-      GLTF2Export.GLBAsync(modelSceneRef.current, 'model.glb')
-        .then(glb => glb.downloadFiles())
-        .catch(error => console.error('Error exporting model GLB:', error));
-    }
-  };
-
-  const exportVoxelGLB = () => {
-    if (voxelSceneRef.current) {
-      GLTF2Export.GLBAsync(voxelSceneRef.current, 'voxel.glb')
-        .then(glb => glb.downloadFiles())
-        .catch(error => console.error('Error exporting voxel GLB:', error));
-    }
-  };
 
   return (
     <>
@@ -167,7 +154,7 @@ const GLBViewer: React.FC = () => {
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
           <br />
-          <button onClick={exportModelGLB}>Export Model</button>
+          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
         </div>
         <div>
           <canvas
@@ -175,7 +162,7 @@ const GLBViewer: React.FC = () => {
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
           <br />
-          <button onClick={exportVoxelGLB}>Export Voxel</button>
+          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
         </div>
       </div>
     </>
