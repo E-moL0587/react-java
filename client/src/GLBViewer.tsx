@@ -178,20 +178,14 @@ const GLBViewer: React.FC = () => {
       <button onClick={() => { generateVoxelData(); connectServer(); }}>データの送信</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
-          <h2>元モデル画像</h2>
-          <canvas
-            ref={modelCanvasRef}
-            style={{ width: '300px', height: '300px', border: '1px solid black' }}
-          />
+          <h2>元の画像</h2>
+          <canvas ref={modelCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
         </div>
         <div>
           <h2>ボクセル画像</h2>
-          <canvas
-            ref={voxelCanvasRef}
-            style={{ width: '300px', height: '300px', border: '1px solid black' }}
-          />
+          <canvas ref={voxelCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
           <h3>ボクセル座標（上位50件まで）</h3>
@@ -203,10 +197,7 @@ const GLBViewer: React.FC = () => {
         </div>
         <div>
           <h2>メッシュ画像</h2>
-          <canvas
-            ref={meshCanvasRef}
-            style={{ width: '300px', height: '300px', border: '1px solid black' }}
-          />
+          <canvas ref={meshCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh</button>
           <h3>メッシュ座標（上位50件まで）</h3>
