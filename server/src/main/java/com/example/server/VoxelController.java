@@ -13,14 +13,14 @@ public class VoxelController {
 
     @GetMapping("/")
     public String hello() {
-        return "サーバに接続されました！";
+        return "Connecting to server!";
     }
 
     @PostMapping("/upload")
     public List<VoxelCoordinates> uploadVoxel(@RequestBody List<VoxelCoordinates> coordinates) {
 
         return coordinates.stream()
-            .map(coord -> new VoxelCoordinates(coord.getX() / 7.0, coord.getY() / 7.0, coord.getZ() / 7.0))
+            .map(coord -> new VoxelCoordinates(coord.getX() / 3.0, coord.getY() / 3.0, coord.getZ() / 3.0))
             .collect(Collectors.toList());
     }
 }
