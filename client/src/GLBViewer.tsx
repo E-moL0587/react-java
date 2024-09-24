@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import axios from 'axios';
 import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Color4, StandardMaterial, Color3, Ray, PickingInfo, SolidParticleSystem, MeshBuilder, SceneLoader } from '@babylonjs/core';
 import '@babylonjs/loaders';
@@ -15,11 +15,11 @@ const GLBViewer: React.FC = () => {
   const voxelSceneRef = useRef<Scene | null>(null);
   const meshSceneRef = useRef<Scene | null>(null);
 
-  useEffect(() => {
+  const connectServer = () => {
     axios.get('http://localhost:8080/')
       .then(response => setMessage(response.data))
       .catch(error => console.error('Error fetching message:', error));
-  }, []);
+  };
 
   const initializeScene = (canvas: HTMLCanvasElement, clearColor: Color4, sceneRef: React.MutableRefObject<Scene | null>, isVoxelScene: boolean) => {
     const engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
@@ -73,7 +73,7 @@ const GLBViewer: React.FC = () => {
       .catch(error => console.error('Error sending voxel data:', error));
   };
 
-  useEffect(() => {
+  const initializeAllScenes = () => {
     const modelCanvas = modelCanvasRef.current;
     const voxelCanvas = voxelCanvasRef.current;
     const meshCanvas = meshCanvasRef.current;
@@ -167,39 +167,34 @@ const GLBViewer: React.FC = () => {
       voxelEngine.resize();
       meshEngine.resize();
     });
-
-    generateVoxelData();
-
-    return () => {
-      modelEngine.dispose();
-      voxelEngine.dispose();
-      meshEngine.dispose();
-    };
-  }, []);
+  };
 
   return (
     <>
       <h1>{message || 'Not connected to server...'}</h1>
+      <button onClick={connectServer}>Connect to Server</button>
+      <button onClick={initializeAllScenes}>Initialize Scenes</button>
+      <button onClick={generateVoxelData}>Send Voxel Data</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>Model Viewer</h2>
           <canvas
             ref={modelCanvasRef}
-            style={{ width: '400px', height: '400px', border: '1px solid black' }}
+            style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
-          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model GLB</button>
+          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
         </div>
         <div>
           <h2>Voxel Viewer</h2>
           <canvas
             ref={voxelCanvasRef}
-            style={{ width: '400px', height: '400px', border: '1px solid black' }}
+            style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
-          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel GLB</button>
-          <h3>Voxel Coordinates:</h3>
+          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
+          <h3>Voxel Coordinates (Showing up to 50)</h3>
           <ul>
-            {voxelCoordinates.map((coord, index) => (
-              <li key={index}>{`X: ${coord.x.toFixed(2)}, Y: ${coord.y.toFixed(2)}, Z: ${coord.z.toFixed(2)}`}</li>
+            {voxelCoordinates.slice(0, 50).map((coord, index) => (
+              <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
             ))}
           </ul>
         </div>
@@ -207,13 +202,13 @@ const GLBViewer: React.FC = () => {
           <h2>Mesh Viewer</h2>
           <canvas
             ref={meshCanvasRef}
-            style={{ width: '400px', height: '400px', border: '1px solid black' }}
+            style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
-          <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh GLB</button>
-          <h3>Mesh Coordinates:</h3>
+          <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh</button>
+          <h3>Mesh Coordinates (Showing up to 50)</h3>
           <ul>
-            {meshCoordinates.map((coord, index) => (
-              <li key={index}>{`X: ${coord.x.toFixed(2)}, Y: ${coord.y.toFixed(2)}, Z: ${coord.z.toFixed(2)}`}</li>
+            {meshCoordinates.slice(0, 50).map((coord, index) => (
+              <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
             ))}
           </ul>
         </div>
