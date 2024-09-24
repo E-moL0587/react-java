@@ -175,7 +175,7 @@ const GLBViewer: React.FC = () => {
       <h3>サーバ：{message || '未接続'}</h3>
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={initializeAllScenes}>シーンの起動</button>
-      <button onClick={generateVoxelData}>データの送信</button>
+      <button onClick={() => { generateVoxelData(); connectServer(); }}>データの送信</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>元モデル画像</h2>
