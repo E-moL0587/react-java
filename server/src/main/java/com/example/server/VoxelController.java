@@ -13,7 +13,7 @@ public class VoxelController {
 
     @GetMapping("/")
     public String hello() {
-        return "Hello world!";
+        return "サーバに接続されました！";
     }
 
     @PostMapping("/upload")

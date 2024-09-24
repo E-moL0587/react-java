@@ -137,7 +137,7 @@ const GLBViewer: React.FC = () => {
         }
       }
 
-      setVoxelCoordinates(newVoxelCoordinates); // Store voxel coordinates
+      setVoxelCoordinates(newVoxelCoordinates);
 
       intersectedCells.forEach(cell => {
         const [x, y, z] = cell.split('-').map(Number);
@@ -179,7 +179,7 @@ const GLBViewer: React.FC = () => {
 
   return (
     <>
-      <h1>{message || 'Loading...'}</h1>
+      <h1>{message || 'サーバと接続中...'}</h1>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>Model Viewer</h2>
