@@ -172,8 +172,8 @@ const GLBViewer: React.FC = () => {
   return (
     <>
       <h1>マーチングキューブ法の研究</h1>
-      <h3>サーバ：{message || '接続されてません'}</h3>
-      <button onClick={connectServer}>サーバへの接続</button>
+      <h3>サーバ：{message || '未接続'}</h3>
+      <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={initializeAllScenes}>シーンの起動</button>
       <button onClick={generateVoxelData}>データの送信</button>
       <div style={{ display: 'flex', gap: '20px' }}>
@@ -183,6 +183,7 @@ const GLBViewer: React.FC = () => {
             ref={modelCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
+          <br />
           <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
         </div>
         <div>
@@ -191,8 +192,9 @@ const GLBViewer: React.FC = () => {
             ref={voxelCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
+          <br />
           <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
-          <h3>ボクセル座標</h3>
+          <h3>ボクセル座標（上位50件まで）</h3>
           <ul>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
               <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
@@ -205,8 +207,9 @@ const GLBViewer: React.FC = () => {
             ref={meshCanvasRef}
             style={{ width: '300px', height: '300px', border: '1px solid black' }}
           />
+          <br />
           <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh</button>
-          <h3>メッシュ座標</h3>
+          <h3>メッシュ座標（上位50件まで）</h3>
           <ul>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
               <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
