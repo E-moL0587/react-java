@@ -80,8 +80,8 @@ const GLBViewer: React.FC = () => {
     if (!modelCanvas || !voxelCanvas || !meshCanvas) return;
 
     const modelEngine = initializeScene(modelCanvas, new Color4(1, 0.9, 1, 1), modelSceneRef, false);
-    const voxelEngine = initializeScene(voxelCanvas, new Color4(0.9, 0.9, 1, 1), voxelSceneRef, true);
-    const meshEngine = initializeScene(meshCanvas, new Color4(0.8, 0.8, 1, 1), meshSceneRef, false);
+    const voxelEngine = initializeScene(voxelCanvas, new Color4(1, 0.8, 1, 1), voxelSceneRef, true);
+    const meshEngine = initializeScene(meshCanvas, new Color4(1, 0.7, 1, 1), meshSceneRef, false);
 
     SceneLoader.Append('', 'guitar.glb', modelSceneRef.current!, () => {
       let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
