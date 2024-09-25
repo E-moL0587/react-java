@@ -40,6 +40,8 @@ const ModelViewer: React.FC = () => {
       axios.post('http://localhost:8080/upload', voxelData)
         .then(response => setMeshCoordinates(response.data))
         .catch(error => console.error('Error sending voxel data:', error));
+
+      alert('ビルドが正常に終了しました！');
     }
   };
 
@@ -88,11 +90,15 @@ const ModelViewer: React.FC = () => {
 
     displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(1, 0, 0), resolution);
     displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1), resolution);
+
+    alert('実行が正常に完了しました！');
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
+
+      alert('ファイルが正常に読み込まれました！');
     }
   };
 
