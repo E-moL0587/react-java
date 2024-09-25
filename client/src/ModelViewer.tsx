@@ -120,33 +120,33 @@ const ModelViewer: React.FC = () => {
       <div style={{ display: 'flex', gap: '10px' }}>
         <div>
           <h2>モデル画像</h2>
-          <canvas ref={modelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={modelSceneCanvas.canvasRef} style={{ width: '30vw', height: '30vw', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(modelSceneCanvas, 'model.glb')}>モデルのファイル出力</button>
         </div>
         <div>
           <h2>ボクセル画像</h2>
-          <canvas ref={voxelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={voxelSceneCanvas.canvasRef} style={{ width: '30vw', height: '30vw', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>ボクセルのファイル出力</button>
           <h3>ボクセル座標（上位50件まで）</h3>
-          <ul>
+          <div>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
-              <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
+              <p key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}</p>
             ))}
-          </ul>
+          </div>
         </div>
         <div>
           <h2>メッシュ画像</h2>
-          <canvas ref={meshSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={meshSceneCanvas.canvasRef} style={{ width: '30vw', height: '30vw', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>メッシュのファイル出力</button>
           <h3>メッシュ座標（上位50件まで）</h3>
-          <ul>
+          <div>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
-              <li key={index}>{`x: ${coord.x.toFixed(2)}, y: ${coord.y.toFixed(2)}, z: ${coord.z.toFixed(2)}`}</li>
+              <p key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}</p>
             ))}
-          </ul>
+          </div>
         </div>
       </div>
     </>
