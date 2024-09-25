@@ -66,19 +66,20 @@ const ModelViewer: React.FC = () => {
       <h3>サーバ：{message || '未接続'}</h3>
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
-      <button onClick={() => { generateMeshData(); connectServer(); displayVoxelAndMeshData(); }}>データの送信と実行</button>
+      <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信</button>
+      <button onClick={displayVoxelAndMeshData}>ボクセルとメッシュの表示</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
-          <h2>元の画像</h2>
+          <h2>モデル画像</h2>
           <canvas ref={modelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(modelSceneCanvas, 'model.glb')}>Export Model</button>
+          <button onClick={() => exportGLB(modelSceneCanvas, 'model.glb')}>モデルのファイル出力</button>
         </div>
         <div>
           <h2>ボクセル画像</h2>
           <canvas ref={voxelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>Export Voxel</button>
+          <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>ボクセルのファイル出力</button>
           <h3>ボクセル座標（上位50件まで）</h3>
           <ul>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
@@ -90,7 +91,7 @@ const ModelViewer: React.FC = () => {
           <h2>メッシュ画像</h2>
           <canvas ref={meshSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>Export Mesh</button>
+          <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>メッシュのファイル出力</button>
           <h3>メッシュ座標（上位50件まで）</h3>
           <ul>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
