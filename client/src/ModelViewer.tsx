@@ -48,13 +48,17 @@ const ModelViewer: React.FC = () => {
     const { sceneRef } = sceneCanvas;
     if (!sceneRef.current) return;
 
-    coordinates.forEach(coord => {
-      const voxel = MeshBuilder.CreateBox('voxel', { size: 0.25 }, sceneRef.current!);
-      voxel.position = new Vector3(coord.x, coord.y, coord.z);
+    const baseVoxel = MeshBuilder.CreateBox('voxel', { size: 0.25 }, sceneRef.current!);
+    baseVoxel.isVisible = false;
 
-      const voxelMaterial = new StandardMaterial('voxelMaterial', sceneRef.current!);
-      voxelMaterial.diffuseColor = color;
-      voxel.material = voxelMaterial;
+    const voxelMaterial = new StandardMaterial('voxelMaterial', sceneRef.current!);
+    voxelMaterial.diffuseColor = color;
+    voxelMaterial.alpha = 0.5;
+    baseVoxel.material = voxelMaterial;
+
+    coordinates.forEach((coord, index) => {
+      const voxelInstance = baseVoxel.createInstance(`voxelInstance${index}`);
+      voxelInstance.position = new Vector3(coord.x, coord.y, coord.z);
     });
   };
 
