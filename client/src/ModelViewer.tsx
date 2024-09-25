@@ -44,16 +44,37 @@ const ModelViewer: React.FC = () => {
     }
   };
 
-  const displayVoxels = (sceneCanvas: SceneCanvasPair, coordinates: Coordinate[], color: Color3) => {
+  const calculateVoxelSize = (coordinates: Coordinate[], resolution: number) => {
+    const maxX = Math.max(...coordinates.map(coord => coord.x));
+    const minX = Math.min(...coordinates.map(coord => coord.x));
+    const maxY = Math.max(...coordinates.map(coord => coord.y));
+    const minY = Math.min(...coordinates.map(coord => coord.y));
+    const maxZ = Math.max(...coordinates.map(coord => coord.z));
+    const minZ = Math.min(...coordinates.map(coord => coord.z));
+
+    const rangeX = maxX - minX;
+    const rangeY = maxY - minY;
+    const rangeZ = maxZ - minZ;
+
+    const sizeX = rangeX / resolution;
+    const sizeY = rangeY / resolution;
+    const sizeZ = rangeZ / resolution;
+
+    return Math.min(sizeX, sizeY, sizeZ);
+  };
+
+  const displayVoxels = (sceneCanvas: SceneCanvasPair, coordinates: Coordinate[], color: Color3, resolution: number) => {
     const { sceneRef } = sceneCanvas;
     if (!sceneRef.current) return;
 
-    const baseVoxel = MeshBuilder.CreateBox('voxel', { size: 0.25 }, sceneRef.current!);
+    const voxelSize = calculateVoxelSize(coordinates, resolution);
+
+    const baseVoxel = MeshBuilder.CreateBox('voxel', { size: voxelSize }, sceneRef.current!);
     baseVoxel.isVisible = false;
 
     const voxelMaterial = new StandardMaterial('voxelMaterial', sceneRef.current!);
     voxelMaterial.diffuseColor = color;
-    voxelMaterial.alpha = 0.5;
+    voxelMaterial.alpha = 0.3;
     baseVoxel.material = voxelMaterial;
 
     coordinates.forEach((coord, index) => {
@@ -63,8 +84,8 @@ const ModelViewer: React.FC = () => {
   };
 
   const displayVoxelAndMeshData = () => {
-    displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(1, 0, 0));
-    displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1));
+    displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(1, 0, 0), resolution);
+    displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1), resolution);
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
