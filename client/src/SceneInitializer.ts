@@ -1,4 +1,4 @@
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Color4, SceneLoader } from '@babylonjs/core';
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Color4, SceneLoader, Mesh, TransformNode } from '@babylonjs/core';
 import '@babylonjs/loaders';
 
 export interface SceneCanvasPair {
@@ -38,7 +38,9 @@ export const initializeAllScenes = (
   initializeScene(voxelSceneCanvas, new Color4(1, 0.8, 1, 1));
   initializeScene(meshSceneCanvas, new Color4(1, 0.7, 1, 1));
 
-  SceneLoader.Append('', glbFilePath, modelSceneCanvas.sceneRef.current!, undefined, undefined, (message, exception) => {
+  SceneLoader.Append('', glbFilePath, modelSceneCanvas.sceneRef.current!, (scene) => {
+    adjustModelCenterY(scene);
+  }, undefined, (message, exception) => {
     console.error('Failed to load model:', message, exception);
   });
 
@@ -51,4 +53,27 @@ export const initializeAllScenes = (
     voxelSceneCanvas.engine?.resize();
     meshSceneCanvas.engine?.resize();
   });
+};
+
+const adjustModelCenterY = (scene: Scene) => {
+  let minY = Number.MAX_VALUE;
+  let maxY = -Number.MAX_VALUE;
+
+  const rootNode = new TransformNode("rootNode", scene);
+
+  scene.meshes.forEach((mesh) => {
+    if (mesh instanceof Mesh) {
+      mesh.setParent(rootNode);
+      const boundingInfo = mesh.getBoundingInfo();
+      const min = boundingInfo.boundingBox.minimumWorld;
+      const max = boundingInfo.boundingBox.maximumWorld;
+
+      if (min.y < minY) minY = min.y;
+      if (max.y > maxY) maxY = max.y;
+    }
+  });
+
+  const centerY = (minY + maxY) / 2;
+
+  rootNode.position.y -= centerY;
 };
