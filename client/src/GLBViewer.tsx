@@ -1,20 +1,19 @@
 import React, { useState, useRef } from 'react';
+import { Vector3, StandardMaterial, MeshBuilder, Scene } from '@babylonjs/core';
 import axios from 'axios';
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Color4, SceneLoader } from '@babylonjs/core';
-import '@babylonjs/loaders';
+import { Color3 } from '@babylonjs/core';
 import { GLTF2Export } from '@babylonjs/serializers';
 import { processGLBToVoxels, Coordinate } from './VoxelProcessor';
+import { initializeAllScenes, SceneCanvasPair } from './SceneInitializer';
 
 const GLBViewer: React.FC = () => {
   const [message, setMessage] = useState('');
   const [voxelCoordinates, setVoxelCoordinates] = useState<Coordinate[]>([]);
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
-  const modelCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const voxelCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const meshCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const modelSceneRef = useRef<Scene | null>(null);
-  const voxelSceneRef = useRef<Scene | null>(null);
-  const meshSceneRef = useRef<Scene | null>(null);
+
+  const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
+  const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
+  const meshSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
 
   const connectServer = () => {
     axios.get('http://localhost:8080/')
@@ -22,25 +21,8 @@ const GLBViewer: React.FC = () => {
       .catch(error => console.error('Error fetching message:', error));
   };
 
-  const initializeScene = (canvas: HTMLCanvasElement, clearColor: Color4, sceneRef: React.MutableRefObject<Scene | null>, isVoxelScene: boolean) => {
-    const engine = new Engine(canvas, true, { antialias: true, adaptToDeviceRatio: true });
-    const scene = new Scene(engine);
-    sceneRef.current = scene;
-
-    scene.clearColor = clearColor;
-
-    const camera = new ArcRotateCamera('camera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, 12, Vector3.Zero(), scene);
-    camera.attachControl(canvas, true);
-    camera.panningSensibility = 0;
-    camera.lowerRadiusLimit = camera.upperRadiusLimit = camera.radius;
-
-    const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene);
-    light.intensity = 10;
-
-    return engine;
-  };
-
-  const exportGLB = (sceneRef: React.MutableRefObject<Scene | null>, fileName: string) => {
+  const exportGLB = (sceneCanvas: SceneCanvasPair, fileName: string) => {
+    const { sceneRef } = sceneCanvas;
     if (sceneRef.current) {
       GLTF2Export.GLBAsync(sceneRef.current, fileName)
         .then(glb => glb.downloadFiles())
@@ -49,8 +31,8 @@ const GLBViewer: React.FC = () => {
   };
 
   const generateMeshData = () => {
-    if (modelSceneRef.current) {
-      const voxelData = processGLBToVoxels(modelSceneRef.current);
+    if (modelSceneCanvas.sceneRef.current) {
+      const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current);
       setVoxelCoordinates(voxelData);
 
       axios.post('http://localhost:8080/upload', voxelData)
@@ -59,29 +41,23 @@ const GLBViewer: React.FC = () => {
     }
   };
 
-  const initializeAllScenes = () => {
-    const modelCanvas = modelCanvasRef.current;
-    const voxelCanvas = voxelCanvasRef.current;
-    const meshCanvas = meshCanvasRef.current;
-    if (!modelCanvas || !voxelCanvas || !meshCanvas) return;
+  const displayVoxels = (sceneCanvas: SceneCanvasPair, coordinates: Coordinate[], color: Color3) => {
+    const { sceneRef } = sceneCanvas;
+    if (!sceneRef.current) return;
 
-    const modelEngine = initializeScene(modelCanvas, new Color4(1, 0.9, 1, 1), modelSceneRef, false);
-    const voxelEngine = initializeScene(voxelCanvas, new Color4(1, 0.8, 1, 1), voxelSceneRef, true);
-    const meshEngine = initializeScene(meshCanvas, new Color4(1, 0.7, 1, 1), meshSceneRef, false);
+    coordinates.forEach(coord => {
+      const voxel = MeshBuilder.CreateBox('voxel', { size: 0.1 }, sceneRef.current!);
+      voxel.position = new Vector3(coord.x, coord.y, coord.z);
 
-    SceneLoader.Append('', 'guitar.glb', modelSceneRef.current!, undefined, undefined, (message, exception) => {
-      console.error('Failed to load model:', message, exception);
+      const voxelMaterial = new StandardMaterial('voxelMaterial', sceneRef.current!);
+      voxelMaterial.diffuseColor = color;
+      voxel.material = voxelMaterial;
     });
+  };
 
-    modelEngine.runRenderLoop(() => modelSceneRef.current?.render());
-    voxelEngine.runRenderLoop(() => voxelSceneRef.current?.render());
-    meshEngine.runRenderLoop(() => meshSceneRef.current?.render());
-
-    window.addEventListener('resize', () => {
-      modelEngine.resize();
-      voxelEngine.resize();
-      meshEngine.resize();
-    });
+  const displayVoxelAndMeshData = () => {
+    displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(0, 1, 0));
+    displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1));
   };
 
   return (
@@ -89,20 +65,21 @@ const GLBViewer: React.FC = () => {
       <h1>マーチングキューブ法の研究</h1>
       <h3>サーバ：{message || '未接続'}</h3>
       <button onClick={connectServer}>サーバへの接続確認</button>
-      <button onClick={initializeAllScenes}>シーンの起動</button>
+      <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信</button>
+      <button onClick={displayVoxelAndMeshData}>ボクセルとメッシュの表示</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>元の画像</h2>
-          <canvas ref={modelCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={modelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(modelSceneRef, 'model.glb')}>Export Model</button>
+          <button onClick={() => exportGLB(modelSceneCanvas, 'model.glb')}>Export Model</button>
         </div>
         <div>
           <h2>ボクセル画像</h2>
-          <canvas ref={voxelCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={voxelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(voxelSceneRef, 'voxel.glb')}>Export Voxel</button>
+          <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>Export Voxel</button>
           <h3>ボクセル座標（上位50件まで）</h3>
           <ul>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
@@ -112,9 +89,9 @@ const GLBViewer: React.FC = () => {
         </div>
         <div>
           <h2>メッシュ画像</h2>
-          <canvas ref={meshCanvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
+          <canvas ref={meshSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
           <br />
-          <button onClick={() => exportGLB(meshSceneRef, 'mesh.glb')}>Export Mesh</button>
+          <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>Export Mesh</button>
           <h3>メッシュ座標（上位50件まで）</h3>
           <ul>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
