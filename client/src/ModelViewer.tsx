@@ -129,7 +129,7 @@ const ModelViewer: React.FC = () => {
           <canvas ref={voxelSceneCanvas.canvasRef} style={{ width: '30vw', height: '30vw', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>ボクセルのファイル出力</button>
-          <h3>ボクセル座標（上位50件まで）</h3>
+          <h4>ボクセルの座標（50件）</h4>
           <div>
             {voxelCoordinates.slice(0, 50).map((coord, index) => (
               <p key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}</p>
@@ -141,7 +141,7 @@ const ModelViewer: React.FC = () => {
           <canvas ref={meshSceneCanvas.canvasRef} style={{ width: '30vw', height: '30vw', border: '1px solid black' }} />
           <br />
           <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>メッシュのファイル出力</button>
-          <h3>メッシュ座標（上位50件まで）</h3>
+          <h4>メッシュの座標（50件）</h4>
           <div>
             {meshCoordinates.slice(0, 50).map((coord, index) => (
               <p key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}</p>
