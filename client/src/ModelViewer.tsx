@@ -11,6 +11,7 @@ const ModelViewer: React.FC = () => {
   const [voxelCoordinates, setVoxelCoordinates] = useState<Coordinate[]>([]);
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
   const [resolution, setResolution] = useState(10);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
@@ -69,19 +70,53 @@ const ModelViewer: React.FC = () => {
     setResolution(prev => Math.max(prev - 1, 1));
   };
 
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
+  const initializeScenesWithFile = () => {
+    if (selectedFile) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          const fileDataUrl = reader.result.toString();
+          initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl);
+        }
+      };
+      reader.readAsDataURL(selectedFile);
+    } else {
+      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb');
+    }
+  };
+
   return (
     <>
       <h1>マーチングキューブ法の研究</h1>
-      <div>
-        <p>サーバ：{message || '未接続'}</p>
-        <p>解像度：{resolution}</p>
-        <button onClick={decreaseResolution}>解像度を減らす</button>
-        <button onClick={increaseResolution}>解像度を増やす</button>
-      </div>
+      <h2>開発環境</h2>
+      <p>
+        フロントエンド側：JavaScript (TypeScript)<br />
+        バックエンド側：Java (SpringBoot)<br />
+        通信：Rest API
+      </p>
+      <h2>設定</h2>
+      <p>
+        サーバ：{message || '未接続'}<br />
+        解像度：{resolution}
+      </p>
+      <button onClick={decreaseResolution}>解像度を減らす</button>
+      <button onClick={increaseResolution}>解像度を増やす</button>
+      <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
-      <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
+
+      {/* ファイルアップロードのinput */}
+      <input type="file" accept=".glb" onChange={handleFileChange} />
+      
+      <button onClick={initializeScenesWithFile}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
+      
       <div style={{ display: 'flex', gap: '10px' }}>
         <div>
           <h2>モデル画像</h2>
