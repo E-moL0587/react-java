@@ -4,7 +4,6 @@ export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
   let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
   let max = new Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
-  // Calculate the bounding box of the model by finding the min/max coordinates
   glbScene.meshes.forEach((mesh) => {
     if (mesh instanceof Mesh) {
       const boundingInfo = mesh.getBoundingInfo();
@@ -13,30 +12,22 @@ export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
     }
   });
 
-  // Determine the current size of the model
   const boxSize = max.subtract(min);
   const currentSize = Math.max(boxSize.x, boxSize.y, boxSize.z);
 
-  // Calculate the center of the model
   const center = min.add(max).scale(0.5);
 
-  // Calculate the scale factor to resize the entire model
   const scale = targetSize / currentSize;
 
-  // Create a parent node to hold all meshes
   const rootNode = new TransformNode("rootNode", glbScene);
 
-  // Attach all meshes to the root node
   glbScene.meshes.forEach((mesh) => {
     if (mesh instanceof Mesh) {
       mesh.setParent(rootNode);
     }
   });
 
-  // Move the root node to center the model at the origin
   rootNode.position = rootNode.position.subtract(center);
-
-  // Apply scaling to the root node to resize the entire model
   rootNode.scaling.scaleInPlace(scale);
 
   return glbScene;
