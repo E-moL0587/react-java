@@ -17,6 +17,9 @@ export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
   const boxSize = max.subtract(min);
   const currentSize = Math.max(boxSize.x, boxSize.y, boxSize.z);
 
+  // Calculate the center of the model
+  const center = min.add(max).scale(0.5);
+
   // Calculate the scale factor to resize the entire model
   const scale = targetSize / currentSize;
 
@@ -29,6 +32,9 @@ export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
       mesh.setParent(rootNode);
     }
   });
+
+  // Move the root node to center the model at the origin
+  rootNode.position = rootNode.position.subtract(center);
 
   // Apply scaling to the root node to resize the entire model
   rootNode.scaling.scaleInPlace(scale);
