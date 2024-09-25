@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Vector3, StandardMaterial, MeshBuilder, Scene, Color3 } from '@babylonjs/core';
 import axios from 'axios';
 import { GLTF2Export } from '@babylonjs/serializers';
@@ -11,11 +11,14 @@ const ModelViewer: React.FC = () => {
   const [voxelCoordinates, setVoxelCoordinates] = useState<Coordinate[]>([]);
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
   const [resolution, setResolution] = useState(10);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const meshSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
+
+  useEffect(() => {
+    initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb');
+  }, []);
 
   const connectServer = () => {
     axios.get('http://localhost:8080/')
@@ -96,14 +99,8 @@ const ModelViewer: React.FC = () => {
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
-      setSelectedFile(event.target.files[0]);
+      const file = event.target.files[0];
 
-      alert('ファイルが正常に読み込まれました！');
-    }
-  };
-
-  const initializeScenesWithFile = () => {
-    if (selectedFile) {
       const reader = new FileReader();
       reader.onload = () => {
         if (reader.result) {
@@ -111,9 +108,9 @@ const ModelViewer: React.FC = () => {
           initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl);
         }
       };
-      reader.readAsDataURL(selectedFile);
-    } else {
-      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb');
+      reader.readAsDataURL(file);
+
+      alert('ファイルが正常に読み込まれました！');
     }
   };
 
@@ -129,7 +126,11 @@ const ModelViewer: React.FC = () => {
 
   return (
     <>
-      <h1>マーチングキューブ法の研究</h1>
+      <h1>PixForge</h1>
+
+      <h2>説明</h2>
+      <p>3Dモデルをボクセル・メッシュに変換できるWebアプリです。</p>
+
       <h2>開発環境</h2>
       <p>
         フロントエンド側：JavaScript (TypeScript)<br />
@@ -147,7 +148,6 @@ const ModelViewer: React.FC = () => {
       <input type="file" accept=".glb" onChange={handleFileChange} />
       <br />
       <button onClick={connectServer}>サーバ接続の確認</button>
-      <button onClick={initializeScenesWithFile}>起動</button>
       <button onClick={resizeModel}>位置の自動調整</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>ビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行</button>
