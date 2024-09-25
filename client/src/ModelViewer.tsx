@@ -12,6 +12,7 @@ const ModelViewer: React.FC = () => {
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
   const [resolution, setResolution] = useState(10);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [size, setSize] = useState(12);
 
   const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
@@ -82,12 +83,12 @@ const ModelViewer: React.FC = () => {
       reader.onload = () => {
         if (reader.result) {
           const fileDataUrl = reader.result.toString();
-          initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl);
+          initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl, size);
         }
       };
       reader.readAsDataURL(selectedFile);
     } else {
-      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb');
+      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb', size);
     }
   };
 
@@ -103,11 +104,16 @@ const ModelViewer: React.FC = () => {
       <h2>設定</h2>
       <p>
         サーバ：{message || '未接続'}<br />
-        解像度：{resolution}
+        解像度：
+        <button onClick={decreaseResolution}>－</button>
+        {resolution}
+        <button onClick={increaseResolution}>＋</button>
       </p>
       <input type="file" accept=".glb" onChange={handleFileChange} />
-      <button onClick={decreaseResolution}>－</button>
-      <button onClick={increaseResolution}>＋</button>
+      <p>
+        サイズ調整：
+        <input type="range" min="1" max="50" value={size} onChange={(e) => setSize(parseInt(e.target.value))} style={{ height: '9px' }} />
+      </p>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
