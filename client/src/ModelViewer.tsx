@@ -83,12 +83,12 @@ const ModelViewer: React.FC = () => {
       reader.onload = () => {
         if (reader.result) {
           const fileDataUrl = reader.result.toString();
-          initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl, size);
+          initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, fileDataUrl);
         }
       };
       reader.readAsDataURL(selectedFile);
     } else {
-      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb', size);
+      initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb');
     }
   };
 
@@ -135,11 +135,11 @@ const ModelViewer: React.FC = () => {
           <br />
           <button onClick={() => exportGLB(voxelSceneCanvas, 'voxel.glb')}>ボクセルのファイル出力</button>
           <h4>ボクセルの座標（50件）</h4>
-          <p>
-            {voxelCoordinates.slice(0, 50).map((coord) => (
-              <>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}<br /></>
+          <>
+            {voxelCoordinates.slice(0, 50).map((coord, index) => (
+              <div key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}<br /></div>
             ))}
-          </p>
+          </>
         </div>
         <div>
           <h2>メッシュ画像</h2>
@@ -147,11 +147,11 @@ const ModelViewer: React.FC = () => {
           <br />
           <button onClick={() => exportGLB(meshSceneCanvas, 'mesh.glb')}>メッシュのファイル出力</button>
           <h4>メッシュの座標（50件）</h4>
-          <p>
-            {meshCoordinates.slice(0, 50).map((coord) => (
-              <>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}<br /></>
+          <>
+            {meshCoordinates.slice(0, 50).map((coord, index) => (
+              <div key={index}>{`(${coord.x.toFixed(2)}, ${coord.y.toFixed(2)}, ${coord.z.toFixed(2)})`}<br /></div>
             ))}
-          </p>
+          </>
         </div>
       </div>
     </>

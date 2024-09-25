@@ -7,7 +7,7 @@ export interface SceneCanvasPair {
   engine: Engine | null;
 }
 
-export const initializeScene = (sceneCanvas: SceneCanvasPair, clearColor: Color4, size: number) => {
+export const initializeScene = (sceneCanvas: SceneCanvasPair, clearColor: Color4) => {
   const { canvasRef, sceneRef } = sceneCanvas;
   const canvas = canvasRef.current;
   if (!canvas) return;
@@ -17,7 +17,7 @@ export const initializeScene = (sceneCanvas: SceneCanvasPair, clearColor: Color4
   scene.clearColor = clearColor;
   sceneRef.current = scene;
 
-  const camera = new ArcRotateCamera('camera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, size, Vector3.Zero(), scene);
+  const camera = new ArcRotateCamera('camera', Math.PI / 2 + 0.3, Math.PI / 4 + 0.6, 12, Vector3.Zero(), scene);
   camera.attachControl(canvas, true);
   camera.panningSensibility = 0;
   camera.lowerRadiusLimit = camera.upperRadiusLimit = camera.radius;
@@ -32,12 +32,11 @@ export const initializeAllScenes = (
   modelSceneCanvas: SceneCanvasPair, 
   voxelSceneCanvas: SceneCanvasPair, 
   meshSceneCanvas: SceneCanvasPair, 
-  glbFilePath: string,
-  size: number
+  glbFilePath: string
 ) => {
-  initializeScene(modelSceneCanvas, new Color4(1, 0.9, 1, 1), size);
-  initializeScene(voxelSceneCanvas, new Color4(1, 0.8, 1, 1), size);
-  initializeScene(meshSceneCanvas, new Color4(1, 0.7, 1, 1), size);
+  initializeScene(modelSceneCanvas, new Color4(1, 0.9, 1, 1));
+  initializeScene(voxelSceneCanvas, new Color4(1, 0.8, 1, 1));
+  initializeScene(meshSceneCanvas, new Color4(1, 0.7, 1, 1));
 
   SceneLoader.Append('', glbFilePath, modelSceneCanvas.sceneRef.current!, undefined, undefined, (message, exception) => {
     console.error('Failed to load model:', message, exception);
