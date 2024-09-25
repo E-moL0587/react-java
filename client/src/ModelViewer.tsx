@@ -10,6 +10,7 @@ const ModelViewer: React.FC = () => {
   const [message, setMessage] = useState('');
   const [voxelCoordinates, setVoxelCoordinates] = useState<Coordinate[]>([]);
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
+  const [resolution, setResolution] = useState(10);
 
   const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
@@ -32,7 +33,7 @@ const ModelViewer: React.FC = () => {
 
   const generateMeshData = () => {
     if (modelSceneCanvas.sceneRef.current) {
-      const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current, 10);
+      const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current, resolution);
       setVoxelCoordinates(voxelData);
 
       axios.post('http://localhost:8080/upload', voxelData)
@@ -60,15 +61,28 @@ const ModelViewer: React.FC = () => {
     displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1));
   };
 
+  const increaseResolution = () => {
+    setResolution(prev => Math.min(prev + 1, 50));
+  };
+
+  const decreaseResolution = () => {
+    setResolution(prev => Math.max(prev - 1, 1));
+  };
+
   return (
     <>
       <h1>マーチングキューブ法の研究</h1>
-      <h3>サーバ：{message || '未接続'}</h3>
+      <div>
+        <p>サーバ：{message || '未接続'}</p>
+        <p>解像度：{resolution}</p>
+        <button onClick={decreaseResolution}>解像度を減らす</button>
+        <button onClick={increaseResolution}>解像度を増やす</button>
+      </div>
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
-      <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信</button>
+      <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
-      <div style={{ display: 'flex', gap: '20px' }}>
+      <div style={{ display: 'flex', gap: '10px' }}>
         <div>
           <h2>モデル画像</h2>
           <canvas ref={modelSceneCanvas.canvasRef} style={{ width: '300px', height: '300px', border: '1px solid black' }} />
