@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Vector3, StandardMaterial, MeshBuilder, Scene } from '@babylonjs/core';
 import axios from 'axios';
 import { Color3 } from '@babylonjs/core';
@@ -93,11 +93,11 @@ const ModelViewer: React.FC = () => {
     }
   };
 
-  const resizeModel = () => {
+  useEffect(() => {
     if (modelSceneCanvas.sceneRef.current) {
-      resizeGLB(modelSceneCanvas.sceneRef.current);
+      resizeGLB(modelSceneCanvas.sceneRef.current, size);
     }
-  };
+  }, [size]);
 
   return (
     <>
@@ -125,7 +125,6 @@ const ModelViewer: React.FC = () => {
       </p>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
-      <button onClick={resizeModel}>リサイズ</button>
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>

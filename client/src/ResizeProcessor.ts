@@ -1,6 +1,6 @@
 import { Scene, Vector3, Mesh } from '@babylonjs/core';
 
-export const resizeGLB = (glbScene: Scene): Scene => {
+export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
   let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
   let max = new Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
@@ -21,7 +21,7 @@ export const resizeGLB = (glbScene: Scene): Scene => {
   const centerOffset = min.add(boxSize.scale(0.5));
 
   // リサイズ係数の計算
-  const scale = 2 / currentSize;
+  const scale = targetSize / currentSize;
 
   // 全てのメッシュをリサイズ＆中央に配置
   glbScene.meshes.forEach(mesh => {
