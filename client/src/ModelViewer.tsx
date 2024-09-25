@@ -117,7 +117,7 @@ const ModelViewer: React.FC = () => {
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
-      <button onClick={resizeModel}>リサイズ</button>
+      <button onClick={resizeModel}>位置の調節</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
 
