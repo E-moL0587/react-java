@@ -6,7 +6,7 @@ export interface Coordinate {
   z: number;
 }
 
-export const processGLBToVoxels = (glbScene: Scene): Coordinate[] => {
+export const processGLBToVoxels = (glbScene: Scene, cellSizeDivisor: number): Coordinate[] => {
   let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
   let max = new Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
@@ -19,7 +19,7 @@ export const processGLBToVoxels = (glbScene: Scene): Coordinate[] => {
 
   const boxSize = max.subtract(min);
   const minSize = Math.min(boxSize.x, boxSize.y, boxSize.z);
-  const cellSize = minSize / 10;
+  const cellSize = minSize / cellSizeDivisor;
 
   const intersectedCells = new Set<string>();
   const newVoxelCoordinates: Coordinate[] = [];

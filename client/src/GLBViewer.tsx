@@ -32,7 +32,7 @@ const GLBViewer: React.FC = () => {
 
   const generateMeshData = () => {
     if (modelSceneCanvas.sceneRef.current) {
-      const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current);
+      const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current, 10);
       setVoxelCoordinates(voxelData);
 
       axios.post('http://localhost:8080/upload', voxelData)
