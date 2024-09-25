@@ -87,3 +87,14 @@ const adjustModelCenterY = (scene: Scene) => {
 
   rootNode.position.y -= (minY + maxY) / 2;
 };
+
+export const resetScene = (sceneCanvas: SceneCanvasPair) => {
+  const scene = sceneCanvas.sceneRef.current;
+  if (!scene) return;
+
+  scene.meshes.forEach((mesh) => {
+    if (mesh instanceof Mesh && !mesh.isDisposed()) {
+      mesh.dispose();
+    }
+  });
+};

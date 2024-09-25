@@ -1,11 +1,10 @@
 import React, { useState, useRef } from 'react';
-import { Vector3, StandardMaterial, MeshBuilder, Scene } from '@babylonjs/core';
+import { Vector3, StandardMaterial, MeshBuilder, Scene, Color3 } from '@babylonjs/core';
 import axios from 'axios';
-import { Color3 } from '@babylonjs/core';
 import { GLTF2Export } from '@babylonjs/serializers';
 import { resizeGLB } from './ResizeProcessor';
 import { processGLBToVoxels, Coordinate } from './VoxelProcessor';
-import { initializeAllScenes, SceneCanvasPair } from './SceneInitializer';
+import { initializeAllScenes, SceneCanvasPair, resetScene } from './SceneInitializer';
 
 const ModelViewer: React.FC = () => {
   const [message, setMessage] = useState('');
@@ -84,6 +83,9 @@ const ModelViewer: React.FC = () => {
   };
 
   const displayVoxelAndMeshData = () => {
+    resetScene(voxelSceneCanvas);
+    resetScene(meshSceneCanvas);
+
     displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(1, 0, 0), resolution);
     displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1), resolution);
   };
@@ -129,9 +131,7 @@ const ModelViewer: React.FC = () => {
         通信：Rest API
       </p>
       <h2>設定</h2>
-      <p>
-        サーバ：{message || '未接続'}
-      </p>
+      <p>サーバ：{message || '未接続'}</p>
       <p>
         解像度：
         <button onClick={() => changeResolution(-1)}>－</button>
