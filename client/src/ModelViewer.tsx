@@ -3,6 +3,7 @@ import { Vector3, StandardMaterial, MeshBuilder, Scene } from '@babylonjs/core';
 import axios from 'axios';
 import { Color3 } from '@babylonjs/core';
 import { GLTF2Export } from '@babylonjs/serializers';
+import { resizeGLB } from './ResizeProcessor';
 import { processGLBToVoxels, Coordinate } from './VoxelProcessor';
 import { initializeAllScenes, SceneCanvasPair } from './SceneInitializer';
 
@@ -92,6 +93,12 @@ const ModelViewer: React.FC = () => {
     }
   };
 
+  const resizeModel = () => {
+    if (modelSceneCanvas.sceneRef.current) {
+      resizeGLB(modelSceneCanvas.sceneRef.current);
+    }
+  };
+
   return (
     <>
       <h1>マーチングキューブ法の研究</h1>
@@ -118,6 +125,7 @@ const ModelViewer: React.FC = () => {
       </p>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
+      <button onClick={resizeModel}>リサイズ</button>
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
