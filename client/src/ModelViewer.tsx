@@ -140,11 +140,11 @@ const ModelViewer: React.FC = () => {
       </p>
       <input type="file" accept=".glb" onChange={handleFileChange} />
       <br />
-      <button onClick={connectServer}>サーバへの接続確認</button>
-      <button onClick={initializeScenesWithFile}>シーンの起動</button>
-      <button onClick={resizeModel}>位置の調節</button>
-      <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
-      <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
+      <button onClick={connectServer}>サーバ接続の確認</button>
+      <button onClick={initializeScenesWithFile}>起動</button>
+      <button onClick={resizeModel}>位置の自動調整</button>
+      <button onClick={() => { generateMeshData(); connectServer(); }}>ビルド</button>
+      <button onClick={displayVoxelAndMeshData}>実行</button>
 
       <div style={{ display: 'flex', gap: '10px' }}>
         <div>
