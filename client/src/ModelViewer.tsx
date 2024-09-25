@@ -105,18 +105,15 @@ const ModelViewer: React.FC = () => {
         サーバ：{message || '未接続'}<br />
         解像度：{resolution}
       </p>
-      <button onClick={decreaseResolution}>解像度を減らす</button>
-      <button onClick={increaseResolution}>解像度を増やす</button>
+      <input type="file" accept=".glb" onChange={handleFileChange} />
+      <button onClick={decreaseResolution}>－</button>
+      <button onClick={increaseResolution}>＋</button>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
-
-      {/* ファイルアップロードのinput */}
-      <input type="file" accept=".glb" onChange={handleFileChange} />
-      
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
-      
+
       <div style={{ display: 'flex', gap: '10px' }}>
         <div>
           <h2>モデル画像</h2>
