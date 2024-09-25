@@ -1,10 +1,10 @@
 import React from 'react';
-import GLBViewer from './GLBViewer';
+import ModelViewer from './ModelViewer';
 
 const App: React.FC = () => {
   return (
     <>
-      <GLBViewer />
+      <ModelViewer />
     </>
   );
 };

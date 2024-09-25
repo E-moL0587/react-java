@@ -6,7 +6,7 @@ import { GLTF2Export } from '@babylonjs/serializers';
 import { processGLBToVoxels, Coordinate } from './VoxelProcessor';
 import { initializeAllScenes, SceneCanvasPair } from './SceneInitializer';
 
-const GLBViewer: React.FC = () => {
+const ModelViewer: React.FC = () => {
   const [message, setMessage] = useState('');
   const [voxelCoordinates, setVoxelCoordinates] = useState<Coordinate[]>([]);
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
@@ -104,4 +104,4 @@ const GLBViewer: React.FC = () => {
   );
 };
 
-export default GLBViewer;
+export default ModelViewer;
