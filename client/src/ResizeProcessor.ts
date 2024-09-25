@@ -1,6 +1,6 @@
 import { Scene, Vector3, Mesh, TransformNode } from '@babylonjs/core';
 
-export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
+export const resizeGLB = (glbScene: Scene): Scene => {
   let min = new Vector3(Number.MAX_VALUE, Number.MAX_VALUE, Number.MAX_VALUE);
   let max = new Vector3(-Number.MAX_VALUE, -Number.MAX_VALUE, -Number.MAX_VALUE);
 
@@ -14,13 +14,12 @@ export const resizeGLB = (glbScene: Scene, targetSize: number): Scene => {
 
   const boxSize = max.subtract(min);
   const currentSize = Math.max(boxSize.x, boxSize.y, boxSize.z);
-
   const center = min.add(max).scale(0.5);
 
-  const scale = targetSize / currentSize;
+  const canvasSize = 8;
+  const scale = canvasSize / currentSize;
 
   const rootNode = new TransformNode("rootNode", glbScene);
-
   glbScene.meshes.forEach((mesh) => {
     if (mesh instanceof Mesh) {
       mesh.setParent(rootNode);

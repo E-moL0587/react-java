@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { Vector3, StandardMaterial, MeshBuilder, Scene } from '@babylonjs/core';
 import axios from 'axios';
 import { Color3 } from '@babylonjs/core';
@@ -13,7 +13,6 @@ const ModelViewer: React.FC = () => {
   const [meshCoordinates, setMeshCoordinates] = useState<Coordinate[]>([]);
   const [resolution, setResolution] = useState(10);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [size, setSize] = useState(12);
 
   const modelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
   const voxelSceneCanvas: SceneCanvasPair = { canvasRef: useRef<HTMLCanvasElement>(null), sceneRef: useRef<Scene | null>(null), engine: null };
@@ -64,14 +63,6 @@ const ModelViewer: React.FC = () => {
     displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1));
   };
 
-  const increaseResolution = () => {
-    setResolution(prev => Math.min(prev + 1, 50));
-  };
-
-  const decreaseResolution = () => {
-    setResolution(prev => Math.max(prev - 1, 1));
-  };
-
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
       setSelectedFile(event.target.files[0]);
@@ -93,11 +84,15 @@ const ModelViewer: React.FC = () => {
     }
   };
 
-  useEffect(() => {
+  const changeResolution = (change: number) => {
+    setResolution(prev => Math.max(1, Math.min(prev + change, 50)));
+  };
+
+  const resizeModel = () => {
     if (modelSceneCanvas.sceneRef.current) {
-      resizeGLB(modelSceneCanvas.sceneRef.current, size);
+      resizeGLB(modelSceneCanvas.sceneRef.current);
     }
-  }, [size]);
+  };
 
   return (
     <>
@@ -114,18 +109,15 @@ const ModelViewer: React.FC = () => {
       </p>
       <p>
         解像度：
-        <button onClick={decreaseResolution}>－</button>
+        <button onClick={() => changeResolution(-1)}>－</button>
         {resolution}
-        <button onClick={increaseResolution}>＋</button>
+        <button onClick={() => changeResolution(1)}>＋</button>
       </p>
       <input type="file" accept=".glb" onChange={handleFileChange} />
-      <p>
-        サイズ調整：
-        <input type="range" min="1" max="200" value={size} onChange={(e) => setSize(parseInt(e.target.value))} style={{ height: '9px' }} />
-      </p>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={initializeScenesWithFile}>シーンの起動</button>
+      <button onClick={resizeModel}>リサイズ</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信とビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
 
