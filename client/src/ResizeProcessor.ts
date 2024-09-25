@@ -14,14 +14,9 @@ export const resizeGLB = (glbScene: Scene): Scene => {
 
   const boxSize = max.subtract(min);
   const currentSize = Math.max(boxSize.x, boxSize.y, boxSize.z);
+  const center = min.add(max).scale(0.5);
 
-  const center = new Vector3(
-    (min.x + max.x) / 2,
-    min.y,
-    (min.z + max.z) / 2
-  );
-
-  const canvasSize = 8;
+  const canvasSize = 7;
   const scale = canvasSize / currentSize;
 
   const rootNode = new TransformNode("rootNode", glbScene);
@@ -31,7 +26,7 @@ export const resizeGLB = (glbScene: Scene): Scene => {
     }
   });
 
-  rootNode.position = center.negate();
+  rootNode.position = rootNode.position.subtract(center);
   rootNode.scaling.scaleInPlace(scale);
 
   return glbScene;
