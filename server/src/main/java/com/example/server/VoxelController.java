@@ -20,7 +20,7 @@ public class VoxelController {
     public List<VoxelCoordinates> uploadVoxel(@RequestBody List<VoxelCoordinates> coordinates) {
 
         return coordinates.stream()
-            .map(coord -> new VoxelCoordinates(coord.getX() / 3.0, coord.getY() / 3.0, coord.getZ() / 3.0))
+            .map(coord -> new VoxelCoordinates(coord.getX() / 1.0, coord.getY() / 1.0, coord.getZ() / 1.0))
             .collect(Collectors.toList());
     }
 }
