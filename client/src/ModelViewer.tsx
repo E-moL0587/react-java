@@ -103,7 +103,9 @@ const ModelViewer: React.FC = () => {
       </p>
       <h2>設定</h2>
       <p>
-        サーバ：{message || '未接続'}<br />
+        サーバ：{message || '未接続'}
+      </p>
+      <p>
         解像度：
         <button onClick={decreaseResolution}>－</button>
         {resolution}
@@ -112,7 +114,7 @@ const ModelViewer: React.FC = () => {
       <input type="file" accept=".glb" onChange={handleFileChange} />
       <p>
         サイズ調整：
-        <input type="range" min="1" max="50" value={size} onChange={(e) => setSize(parseInt(e.target.value))} style={{ height: '9px' }} />
+        <input type="range" min="1" max="200" value={size} onChange={(e) => setSize(parseInt(e.target.value))} style={{ height: '9px' }} />
       </p>
       <br />
       <button onClick={connectServer}>サーバへの接続確認</button>
