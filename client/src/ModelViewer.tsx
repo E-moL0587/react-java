@@ -46,7 +46,7 @@ const ModelViewer: React.FC = () => {
     if (!sceneRef.current) return;
 
     coordinates.forEach(coord => {
-      const voxel = MeshBuilder.CreateBox('voxel', { size: 0.1 }, sceneRef.current!);
+      const voxel = MeshBuilder.CreateBox('voxel', { size: 0.25 }, sceneRef.current!);
       voxel.position = new Vector3(coord.x, coord.y, coord.z);
 
       const voxelMaterial = new StandardMaterial('voxelMaterial', sceneRef.current!);
