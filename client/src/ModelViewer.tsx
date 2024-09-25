@@ -67,7 +67,7 @@ const ModelViewer: React.FC = () => {
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
       <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信</button>
-      <button onClick={displayVoxelAndMeshData}>ボクセルとメッシュの表示</button>
+      <button onClick={displayVoxelAndMeshData}>実行と結果の表示</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>モデル画像</h2>
