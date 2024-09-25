@@ -22,9 +22,7 @@ export const initializeScene = (sceneCanvas: SceneCanvasPair, clearColor: Color4
   camera.panningSensibility = 0;
   camera.lowerRadiusLimit = camera.upperRadiusLimit = camera.radius;
 
-  const light = new HemisphericLight('light', new Vector3(1, 1, 0), scene);
-  light.intensity = 10;
-
+  new HemisphericLight('light', new Vector3(1, 1, 0), scene).intensity = 10;
   sceneCanvas.engine = engine;
 };
 
@@ -34,46 +32,58 @@ export const initializeAllScenes = (
   meshSceneCanvas: SceneCanvasPair, 
   glbFilePath: string
 ) => {
-  initializeScene(modelSceneCanvas, new Color4(1, 0.9, 1, 1));
-  initializeScene(voxelSceneCanvas, new Color4(1, 0.8, 1, 1));
-  initializeScene(meshSceneCanvas, new Color4(1, 0.7, 1, 1));
-
-  SceneLoader.Append('', glbFilePath, modelSceneCanvas.sceneRef.current!, (scene) => {
-    adjustModelCenterY(scene);
-  }, undefined, (message, exception) => {
-    console.error('Failed to load model:', message, exception);
+  [modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas].forEach((canvas, i) => {
+    initializeScene(canvas, new Color4(1, 0.9 - i * 0.1, 1, 1));
   });
 
-  modelSceneCanvas.engine?.runRenderLoop(() => modelSceneCanvas.sceneRef.current?.render());
-  voxelSceneCanvas.engine?.runRenderLoop(() => voxelSceneCanvas.sceneRef.current?.render());
-  meshSceneCanvas.engine?.runRenderLoop(() => meshSceneCanvas.sceneRef.current?.render());
+  const synchronizeCameras = () => {
+    const cameras = [
+      modelSceneCanvas.sceneRef.current!.activeCamera,
+      voxelSceneCanvas.sceneRef.current!.activeCamera,
+      meshSceneCanvas.sceneRef.current!.activeCamera
+    ] as ArcRotateCamera[];
+
+    cameras.forEach((camera, index) => {
+      camera.onViewMatrixChangedObservable.add(() => {
+        cameras.forEach((otherCamera, i) => {
+          if (i !== index) {
+            otherCamera.alpha = camera.alpha;
+            otherCamera.beta = camera.beta;
+            otherCamera.radius = camera.radius;
+          }
+        });
+      });
+    });
+  };
+
+  SceneLoader.Append('', glbFilePath, modelSceneCanvas.sceneRef.current!, () => {
+    adjustModelCenterY(modelSceneCanvas.sceneRef.current!);
+    synchronizeCameras();
+  });
+
+  [modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas].forEach((canvas) => {
+    canvas.engine?.runRenderLoop(() => canvas.sceneRef.current?.render());
+  });
 
   window.addEventListener('resize', () => {
-    modelSceneCanvas.engine?.resize();
-    voxelSceneCanvas.engine?.resize();
-    meshSceneCanvas.engine?.resize();
+    [modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas].forEach((canvas) => {
+      canvas.engine?.resize();
+    });
   });
 };
 
 const adjustModelCenterY = (scene: Scene) => {
-  let minY = Number.MAX_VALUE;
-  let maxY = -Number.MAX_VALUE;
+  let minY = Number.MAX_VALUE, maxY = -Number.MAX_VALUE;
 
   const rootNode = new TransformNode("rootNode", scene);
-
   scene.meshes.forEach((mesh) => {
     if (mesh instanceof Mesh) {
       mesh.setParent(rootNode);
-      const boundingInfo = mesh.getBoundingInfo();
-      const min = boundingInfo.boundingBox.minimumWorld;
-      const max = boundingInfo.boundingBox.maximumWorld;
-
-      if (min.y < minY) minY = min.y;
-      if (max.y > maxY) maxY = max.y;
+      const { minimumWorld: min, maximumWorld: max } = mesh.getBoundingInfo().boundingBox;
+      minY = Math.min(minY, min.y);
+      maxY = Math.max(maxY, max.y);
     }
   });
 
-  const centerY = (minY + maxY) / 2;
-
-  rootNode.position.y -= centerY;
+  rootNode.position.y -= (minY + maxY) / 2;
 };
