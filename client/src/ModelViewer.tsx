@@ -56,7 +56,7 @@ const ModelViewer: React.FC = () => {
   };
 
   const displayVoxelAndMeshData = () => {
-    displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(0, 1, 0));
+    displayVoxels(voxelSceneCanvas, voxelCoordinates, new Color3(1, 0, 0));
     displayVoxels(meshSceneCanvas, meshCoordinates, new Color3(0, 0, 1));
   };
 
@@ -66,8 +66,7 @@ const ModelViewer: React.FC = () => {
       <h3>サーバ：{message || '未接続'}</h3>
       <button onClick={connectServer}>サーバへの接続確認</button>
       <button onClick={() => initializeAllScenes(modelSceneCanvas, voxelSceneCanvas, meshSceneCanvas, 'guitar.glb')}>シーンの起動</button>
-      <button onClick={() => { generateMeshData(); connectServer(); }}>データの送信</button>
-      <button onClick={displayVoxelAndMeshData}>ボクセルとメッシュの表示</button>
+      <button onClick={() => { generateMeshData(); connectServer(); displayVoxelAndMeshData(); }}>データの送信と実行</button>
       <div style={{ display: 'flex', gap: '20px' }}>
         <div>
           <h2>元の画像</h2>
