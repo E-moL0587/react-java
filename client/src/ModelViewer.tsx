@@ -36,6 +36,8 @@ const ModelViewer: React.FC = () => {
   };
 
   const generateMeshData = () => {
+    connectServer();
+
     if (modelSceneCanvas.sceneRef.current) {
       const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current, resolution);
       setVoxelCoordinates(voxelData);
@@ -126,7 +128,7 @@ const ModelViewer: React.FC = () => {
 
   return (
     <>
-      <h1>PixForge</h1>
+      <h1>Images to Voxel</h1>
 
       <h2>説明</h2>
       <p>3Dモデルをボクセル・メッシュに変換できるWebアプリです。</p>
@@ -149,7 +151,7 @@ const ModelViewer: React.FC = () => {
       <br />
       <button onClick={connectServer}>サーバ接続の確認</button>
       <button onClick={resizeModel}>位置の自動調整</button>
-      <button onClick={() => { generateMeshData(); connectServer(); }}>ビルド</button>
+      <button onClick={generateMeshData}>ビルド</button>
       <button onClick={displayVoxelAndMeshData}>実行</button>
 
       <div style={{ display: 'flex', gap: '10px' }}>
