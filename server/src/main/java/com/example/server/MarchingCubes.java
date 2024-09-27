@@ -18,18 +18,9 @@ public class MarchingCubes {
 
     public List<VoxelCoordinates> generateMesh(List<VoxelCoordinates> voxelData) {
         int width = 0, height = 0, depth = 0;
-        for (VoxelCoordinates voxel : voxelData) {
-            width = Math.max(width, (int) voxel.getX() + 1);
-            height = Math.max(height, (int) voxel.getY() + 1);
-            depth = Math.max(depth, (int) voxel.getZ() + 1);
-        }
 
         List<VoxelCoordinates> meshData = new ArrayList<>();
         int[][][] scalarField = new int[width][height][depth];
-
-        for (VoxelCoordinates voxel : voxelData) {
-            scalarField[(int) voxel.getX()][(int) voxel.getY()][(int) voxel.getZ()] = 1;
-        }
 
         for (int x = 0; x < width - 1; x++) {
             for (int y = 0; y < height - 1; y++) {

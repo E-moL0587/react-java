@@ -36,32 +36,29 @@ const ModelViewer: React.FC = () => {
   };
 
   const generateMeshData = async () => {
-    // First, ensure server connection is established
     try {
-      await connectServer();
+      connectServer();
     } catch (error) {
       console.error('Server connection failed:', error);
       alert('サーバー接続に失敗しました');
       return;
     }
-  
+
     if (modelSceneCanvas.sceneRef.current) {
-      // Process the 3D model and convert to voxel data
       const voxelData = processGLBToVoxels(modelSceneCanvas.sceneRef.current, resolution);
       if (!voxelData || voxelData.length === 0) {
         console.error('Voxel data generation failed.');
         alert('ボクセルデータの生成に失敗しました。');
         return;
       }
-  
+
       setVoxelCoordinates(voxelData);
-  
-      // Send the voxel data to the server
+
       try {
         const response = await axios.post('http://localhost:8080/upload', voxelData, {
           headers: { 'Content-Type': 'application/json' }
         });
-  
+
         setMeshCoordinates(response.data); // Assuming the response contains mesh data
         alert('ビルドが正常に終了しました！');
       } catch (error) {
