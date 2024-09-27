@@ -59,7 +59,7 @@ const ModelViewer: React.FC = () => {
           headers: { 'Content-Type': 'application/json' }
         });
 
-        setMeshCoordinates(response.data); // Assuming the response contains mesh data
+        setMeshCoordinates(response.data);
         alert('ビルドが正常に終了しました！');
       } catch (error) {
         console.error('Error sending voxel data:', error);
